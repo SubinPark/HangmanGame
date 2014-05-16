@@ -10,8 +10,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicNameValuePair;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -24,9 +28,13 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.constant.BuildConfig;
 import com.example.server.comm.HttpHandler;
 
 public class MainActivity extends ActionBarActivity implements OnClickListener {
+
+	String mSecret;
+	Context mContext = this;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +88,7 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 		}
 	}
 
-	//TODO ****************Initialize a game here
+	// TODO ****************Initialize a game here
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.playBtn) {
@@ -88,17 +96,16 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 				public HttpUriRequest getHttpRequestMethod() {
 					HttpPost httppost = new HttpPost(
 							"http://strikingly-interview-test.herokuapp.com/guess/process");
-
 					try {
 						// Add your data
 						List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
 								3);
 						nameValuePairs.add(new BasicNameValuePair("action",
-								"nextWord"));
+								BuildConfig.INIT));
 						nameValuePairs.add(new BasicNameValuePair("userId",
-								"subin.c.park@gmail.com"));
-						nameValuePairs.add(new BasicNameValuePair("secret",
-								"4MT1HQAE05W5EWMIV4QNK10U51NN4S"));
+								BuildConfig.USERID));
+						// nameValuePairs.add(new BasicNameValuePair("secret",
+						// "4MT1HQAE05W5EWMIV4QNK10U51NN4S"));
 						httppost.setEntity(new UrlEncodedFormEntity(
 								nameValuePairs));
 
@@ -111,16 +118,53 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 				}
 
 				public void onResponse(String result) {
-					Toast.makeText(getBaseContext(), "Requested!",Toast.LENGTH_LONG).show();
-					//etResponse.setText(result);
-					//etResponse.setText(result);
-					Log.e("Here the Result", result);
-				}
+					Toast.makeText(getBaseContext(), "Requested!",
+							Toast.LENGTH_LONG).show();
 
+					// Split and get the 'secret' and save it to a BuildConfig.secret
+					Log.e("Here the Result", result);
+					String[] pairs = result.split(",");
+					
+					for(String pair: pairs) {
+						   String[] element = pair.split(":");
+						   String key = element[0];
+						   String value = element[1];
+						   
+						   // Now do with key whatever you want with key and value...
+						   if(key.equals("\"secret\"")) {
+						       BuildConfig.SECRET = value;
+						       Log.i("HERE", value);
+						       mSecret = value;
+						       savePreferences("Secret", value);
+						   }
+						}
+				}
 			}.execute();
+
+
+			
+			savePreferences("Secret", mSecret); // for the value, add the result string after splitting
+			loadSavedPreferences();
+			
 			Intent playIntent = new Intent(this, GameActivity.class);
 			this.startActivity(playIntent);
 		}
 	}
 
+	private void savePreferences(String key, String value) {
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor editor = sharedPreferences.edit();
+		editor.putString(key, value);
+		editor.commit();
+	}
+
+	private void loadSavedPreferences() {
+	
+		        SharedPreferences sharedPreferences = PreferenceManager
+		                .getDefaultSharedPreferences(this);
+		        BuildConfig.SECRET = sharedPreferences.getString("Secret", "4MT1HQAE05W5EWMIV4QNK10U51NN4S");
+		
+		    }
+
+	
 }

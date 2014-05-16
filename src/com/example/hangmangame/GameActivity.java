@@ -2,6 +2,8 @@ package com.example.hangmangame;
 
 import java.util.Random;
 
+import com.example.constant.BuildConfig;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -9,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
@@ -87,6 +90,8 @@ public class GameActivity extends Activity {
 		//set home as up
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 
+		Log.e("Constant", BuildConfig.SECRET);
+		
 		//start gameplay
 		playGame();
 
