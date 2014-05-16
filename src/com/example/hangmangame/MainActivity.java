@@ -136,10 +136,22 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 						       Log.i("HERE", value);
 						       mSecret = value;
 						       savePreferences("Secret", value);
-						   }
+						       
+						
+							}
 						}
 				}
+				
 			}.execute();
+			
+			synchronized (HttpHandler.class) {
+			    try {
+					HttpHandler.class.wait(2000); // TODO couldn't figure out where notify should be. So for temporarily, I put 1500milliseconds
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 
 
 			
