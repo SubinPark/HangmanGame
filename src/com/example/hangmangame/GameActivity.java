@@ -63,6 +63,12 @@ public class GameActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_game);
 
+		
+		
+		
+		
+		
+		
 		//read answer words in
 		Resources res = getResources();
 		words = res.getStringArray(R.array.words);
@@ -90,7 +96,7 @@ public class GameActivity extends Activity {
 		//set home as up
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 
-		Log.e("Constant", BuildConfig.SECRET);
+		Log.e("SecretInGameActivity", BuildConfig.SECRET);
 		
 		//start gameplay
 		playGame();

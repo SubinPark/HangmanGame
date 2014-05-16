@@ -117,12 +117,23 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 
 				}
 
-				public void onResponse(String result) {
+				public void onResponse(String result) {////////////////***************Here, this thread gets slower than the other
 					Toast.makeText(getBaseContext(), "Requested!",
 							Toast.LENGTH_LONG).show();
 
 					// Split and get the 'secret' and save it to a BuildConfig.secret
 					Log.e("Here the Result", result);
+					
+					Helpers test = new Helpers();
+					String returnedValue = test.findValueToKey(result, "secret");
+					Log.e("Returned", returnedValue);
+					if(returnedValue != null) {
+						Log.e("null?", "no");
+						BuildConfig.SECRET = returnedValue;
+						savePreferences("Secret", returnedValue);
+					}
+					
+					/**
 					String[] pairs = result.split(",");
 					
 					for(String pair: pairs) {
@@ -140,6 +151,7 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 						
 							}
 						}
+						**/
 				}
 				
 			}.execute();
