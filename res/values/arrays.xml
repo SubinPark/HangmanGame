@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string-array name="words">
+    <item>CHARGER</item>
+    <item>COMPUTER</item>
+    <item>TABLET</item>
+    <item>SYSTEM</item>
+    <item>APPLICATION</item>
+    <item>INTERNET</item>
+    <item>STYLUS</item>
+    <item>ANDROID</item>
+    <item>KEYBOARD</item>
+    <item>SMARTPHONE</item>
+  </string-array>
+</resources>
