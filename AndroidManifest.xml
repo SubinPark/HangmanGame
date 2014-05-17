@@ -28,7 +28,8 @@
         <activity
             android:name="com.example.hangmangame.GameActivity"
             android:parentActivityName="com.example.hangmangame.MainActivity"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait" >
+        </activity>
     </application>
 
 </manifest>
