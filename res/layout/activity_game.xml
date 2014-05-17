@@ -102,10 +102,11 @@
         android:stretchMode="columnWidth"
         android:verticalSpacing="5dp" />
 
-    <ImageButton
+    <Button
         android:id="@+id/next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/button_next" />
+        android:text="Next"
+        android:textColor="#FFFFFFFF" />
 
 </LinearLayout>

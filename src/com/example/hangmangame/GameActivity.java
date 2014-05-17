@@ -1,48 +1,43 @@
 package com.example.hangmangame;
 
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.constant.Action;
 import com.example.constant.BuildConfig;
-
-/**
- * This is demo code to accompany the Mobiletuts+ tutorial: - Android SDK:
- * Create a Hangman Game
- * 
- * Sue Smith - January 2014
- */
+import com.example.server.comm.HttpRequest;
+import com.example.preference.PreferenceManager;
 
 @SuppressLint("NewApi")
-public class GameActivity extends Activity {
+public class GameActivity extends Activity implements OnClickListener {
 
 	// the words
-	private String[] words;
-	// random for word selection
-	private Random rand;
-	// store the current word
 	private String currWord;
 	// the layout holding the answer
-	private LinearLayout wordLayout;
+	private LinearLayout textLayout;
 	// text views for each letter in the answer
-	private TextView[] charViews;
+	private TextView textView;
 	// letter button grid
 	private GridView letters;
 	// letter button adapter
@@ -57,38 +52,18 @@ public class GameActivity extends Activity {
 	private int numChars;
 	// num correct so far
 	private int numCorr;
-	// help
-	private AlertDialog helpAlert;
+
+	// Next button
+	private Button buttonNext;
+	private PreferenceManager mPreferenceManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_game);
 
-		//handler(Action.NEXT, "word", BuildConfig.WORD);
-		synchronized (this) {
-			try {
-				this.wait(10000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-
-		/**
-		 * //read answer words in Resources res = getResources(); words =
-		 * res.getStringArray(R.array.words);
-		 * 
-		 * //initialize random rand = new Random();
-		 **/
-		// initialize word
-		currWord = loadSavedPreferences();
-		Log.i("currWord", currWord);
-
-		// currWord="";
-
 		// get answer area
-		wordLayout = (LinearLayout) findViewById(R.id.word);
+		textLayout = (LinearLayout) findViewById(R.id.word);
 
 		// get letter button grid
 		letters = (GridView) findViewById(R.id.letters);
@@ -102,14 +77,18 @@ public class GameActivity extends Activity {
 		bodyParts[4] = (ImageView) findViewById(R.id.leg1);
 		bodyParts[5] = (ImageView) findViewById(R.id.leg2);
 
+		// get button
+		buttonNext = (Button) findViewById(R.id.next);
+		buttonNext.setOnClickListener(this);
+
+		textLayout = (LinearLayout) findViewById(R.id.word);
+
 		// set home as up
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		Log.e("SecretInGameActivity", BuildConfig.SECRET);
 
-		// start gameplay
-		playGame();
-
+		setPlatform();
 	}
 
 	@Override
@@ -119,38 +98,26 @@ public class GameActivity extends Activity {
 		return true;
 	}
 
-	/**
-	 * @Override public boolean onOptionsItemSelected(MenuItem item) { switch
-	 *           (item.getItemId()) { case android.R.id.home:
-	 *           NavUtils.navigateUpFromSameTask(this); return true; case
-	 *           R.id.action_help: showHelp(); return true; } return
-	 *           super.onOptionsItemSelected(item); }
-	 **/
+	private void setWord() {
 
-	// play a new game
-	private void playGame() {
+		textView = new TextView(this);
+		// set the current letter
+		textView.setText(BuildConfig.WORD);
 
-		// create new array for character text views
-		charViews = new TextView[currWord.length()];
+		// set layout
+		textView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.WRAP_CONTENT));
+		textView.setGravity(Gravity.CENTER);
+		textView.setTextColor(Color.BLACK);
+		textView.setBackgroundResource(R.drawable.letter_bg);
 
 		// remove any existing letters
-		wordLayout.removeAllViews();
+		textLayout.removeAllViews();
 
-		// loop through characters
-		for (int c = 0; c < currWord.length(); c++) {
-			charViews[c] = new TextView(this);
-			// set the current letter
-			charViews[c].setText("" + currWord.charAt(c));
-			// set layout
-			charViews[c].setLayoutParams(new LayoutParams(
-					LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-			charViews[c].setGravity(Gravity.CENTER);
-			charViews[c].setTextColor(Color.BLACK);
-			charViews[c].setBackgroundResource(R.drawable.letter_bg);
-			// add to display
-			wordLayout.addView(charViews[c]);
-		}
+		textLayout.addView(textView);
+	}
 
+	private void setPlatform() {
 		// reset adapter
 		ltrAdapt = new LetterAdapter(this);
 		letters.setAdapter(ltrAdapt);
@@ -158,7 +125,7 @@ public class GameActivity extends Activity {
 		// start part at zero
 		currPart = 0;
 		// set word length and correct choices
-		numChars = currWord.length();
+		// numChars = currWord.length();
 		numCorr = 0;
 
 		// hide all parts
@@ -166,77 +133,116 @@ public class GameActivity extends Activity {
 			bodyParts[p].setVisibility(View.INVISIBLE);
 		}
 	}
-
+	
+	
+	
+/**
 	// letter pressed method
-	public void letterPressed(View view) {
-		// find out which letter was pressed
-		String ltr = ((TextView) view).getText().toString();
-		char letterChar = ltr.charAt(0);
-		// disable view
-		view.setEnabled(false);
-		view.setBackgroundResource(R.drawable.letter_down);
-		// check if correct
-		boolean correct = false;
-		for (int k = 0; k < currWord.length(); k++) {
-			if (currWord.charAt(k) == letterChar) {
-				correct = true;
-				numCorr++;
-				charViews[k].setTextColor(Color.BLACK);
+		public void letterPressed(View view) {
+			// find out which letter was pressed
+			String ltr = ((TextView) view).getText().toString();
+			char letterChar = ltr.charAt(0);
+			// disable view
+			view.setEnabled(false);
+			view.setBackgroundResource(R.drawable.letter_down);
+			
+			
+			
+			// check if correct
+			new HttpRequest().onPreExecute(getApplicationContext());
+			try {
+				String response = new HttpRequest().execute(Action.GUESS).get();
+				Log.i("http response in game", response);
+
+				// splitting the string to find secret
+				Helpers splitString = new Helpers();
+				String returnedValue = splitString.findValueToKey(response,
+						"word");
+
+				// saving the information
+				BuildConfig.WORD = returnedValue;
+
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-		}
-		// check in case won
-		if (correct) {
-			if (numCorr == numChars) {
-				// disable all buttons
+			
+			
+			
+			boolean correct = false;
+			for (int k = 0; k < currWord.length(); k++) {
+				if (currWord.charAt(k) == letterChar) {
+					correct = true;
+					numCorr++;
+					charViews[k].setTextColor(Color.BLACK);
+				}
+			}
+			
+			
+			
+			
+			// check in case won
+			if (correct) {
+				if (numCorr == numChars) {
+					// disable all buttons
+					disableBtns();
+					// let user know they have won, ask if they want to play again
+					AlertDialog.Builder winBuild = new AlertDialog.Builder(this);
+					winBuild.setTitle("YAY");
+					winBuild.setMessage("You win!\n\nThe answer was:\n\n"
+							+ currWord);
+					winBuild.setPositiveButton("Play Again",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int id) {
+									GameActivity.this.playGame();
+								}
+							});
+					winBuild.setNegativeButton("Exit",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int id) {
+									GameActivity.this.finish();
+								}
+							});
+					winBuild.show();
+				}
+			}
+			
+			
+			
+			// check if user still has guesses
+			else if (currPart < numParts) {
+				// show next part
+				bodyParts[currPart].setVisibility(View.VISIBLE);
+				currPart++;
+			} else {
+				// user has lost
 				disableBtns();
-				// let user know they have won, ask if they want to play again
-				AlertDialog.Builder winBuild = new AlertDialog.Builder(this);
-				winBuild.setTitle("YAY");
-				winBuild.setMessage("You win!\n\nThe answer was:\n\n"
-						+ currWord);
-				winBuild.setPositiveButton("Play Again",
+				// let the user know they lost, ask if they want to play again
+				AlertDialog.Builder loseBuild = new AlertDialog.Builder(this);
+				loseBuild.setTitle("OOPS");
+				loseBuild.setMessage("You lose!\n\nThe answer was:\n\n" + currWord);
+				loseBuild.setPositiveButton("Play Again",
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								GameActivity.this.playGame();
 							}
 						});
-				winBuild.setNegativeButton("Exit",
+				loseBuild.setNegativeButton("Exit",
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								GameActivity.this.finish();
 							}
 						});
-				winBuild.show();
+				loseBuild.show();
 			}
 		}
-		// check if user still has guesses
-		else if (currPart < numParts) {
-			// show next part
-			bodyParts[currPart].setVisibility(View.VISIBLE);
-			currPart++;
-		} else {
-			// user has lost
-			disableBtns();
-			// let the user know they lost, ask if they want to play again
-			AlertDialog.Builder loseBuild = new AlertDialog.Builder(this);
-			loseBuild.setTitle("OOPS");
-			loseBuild.setMessage("You lose!\n\nThe answer was:\n\n" + currWord);
-			loseBuild.setPositiveButton("Play Again",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							GameActivity.this.playGame();
-						}
-					});
-			loseBuild.setNegativeButton("Exit",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							GameActivity.this.finish();
-						}
-					});
-			loseBuild.show();
-		}
-	}
-
+		
+		**/
+		
+		
 	// disable letter buttons
 	public void disableBtns() {
 		int numLetters = letters.getChildCount();
@@ -245,91 +251,35 @@ public class GameActivity extends Activity {
 		}
 	}
 
-	// show help information
-	public void showHelp() {
-		AlertDialog.Builder helpBuild = new AlertDialog.Builder(this);
-		helpBuild.setTitle("Help");
-		helpBuild.setMessage("Guess the word by selecting the letters.\n\n"
-				+ "You only have 6 wrong selections then it's game over!");
-		helpBuild.setPositiveButton("OK",
-				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						helpAlert.dismiss();
-					}
-				});
-		helpAlert = helpBuild.create();
-		helpBuild.show();
-	}
+	public void onClick(View v) {
+		if (v.getId() == R.id.next) {
+			Log.i("clicked?", "yes");
+			new HttpRequest().onPreExecute(getApplicationContext());
+			try {
+				String response = new HttpRequest().execute(Action.NEXT).get();
+				Log.i("http response in game", response);
 
-	// action = "buildConfig.NEXTWORD, keyToFind = "word", returnValue =
-	// BuildConfig.WORD
-	/**
-	public void handler(final String action, final String keyToFind,
-			final String whereToReturn) {
-		new HttpHandler() {
-			public HttpUriRequest getHttpRequestMethod() {
-				HttpPost httppost = new HttpPost(
-						"http://strikingly-interview-test.herokuapp.com/guess/process");
-				try {
-					// Add your data
-					List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(
-							3);
-					nameValuePairs
-							.add(new BasicNameValuePair("action", action));
-					nameValuePairs.add(new BasicNameValuePair("userId",
-							BuildConfig.USERID));
-					nameValuePairs.add(new BasicNameValuePair("secret",
-							"4MT1HQAE05W5EWMIV4QNK10U51NN4S"));
-					httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+				// splitting the string to find secret
+				Helpers splitString = new Helpers();
+				String returnedValue = splitString.findValueToKey(response,
+						"word");
 
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-				}
+				// saving the information
+				BuildConfig.WORD = returnedValue;
 
-				return httppost;
-
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
-			public void onResponse(String result) {
-				Log.e("Here the Result", result);
-
-				Helpers test = new Helpers();
-				String returnedValue = test.findValueToKey(result, keyToFind);
-				// Log.e("Returned", returnedValue);
-				if (returnedValue != null) {
-					if (whereToReturn == BuildConfig.WORD) { //should include guess word too
-						Log.e("whereToReturn", "word");
-						BuildConfig.WORD = returnedValue;
-						savePreferences("Word", returnedValue);
-					}
-					else if (whereToReturn == BuildConfig.SECRET) {
-						Log.e("whereToReturn", "secret");
-						BuildConfig.SECRET = returnedValue;
-						savePreferences("Secret", returnedValue);
-					}
-				}
-			}
-
-		}.execute();
-
-	}
-	
-	**/
-
-	private void savePreferences(String key, String value) {
-		SharedPreferences sharedPreferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		Editor editor = sharedPreferences.edit();
-		editor.putString(key, value);
-		editor.commit();
-	}
-
-	private String loadSavedPreferences() {
-		SharedPreferences sharedPreferences = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		BuildConfig.WORD = sharedPreferences.getString("Word", "A");
-		return BuildConfig.WORD;
-
+			
+			currWord = BuildConfig.WORD;
+			//mPreferenceManager.setWord(getApplicationContext(), currWord);
+			setWord();
+		}
 	}
 
 }

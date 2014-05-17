@@ -1,14 +1,9 @@
 package com.example.hangmangame;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
@@ -19,6 +14,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.example.constant.Action;
 import com.example.constant.BuildConfig;
 import com.example.preference.PreferenceManager;
 import com.example.server.comm.HttpRequest;
@@ -27,7 +23,7 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 
 	private String mSecret;
 	private Context mContext = this;
-	
+
 	private PreferenceManager mPreferenceManager;
 
 	@Override
@@ -37,7 +33,7 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 
 		Button playBtn = (Button) findViewById(R.id.playBtn);
 		playBtn.setOnClickListener(this);
-		
+
 		mPreferenceManager = new PreferenceManager();
 	}
 
@@ -58,23 +54,25 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 		}
 	}
 
-	// TODO ****************Initialize a game here
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.playBtn) {
+			//initialize game
 			new HttpRequest().onPreExecute(getApplicationContext());
 			try {
-				String response = new HttpRequest().execute().get();
+				String response = new HttpRequest().execute(Action.INIT).get();
 				Log.i("http response", response);
-				
-				//splitting the string to find secret
+
+				// splitting the string to find secret
 				Helpers splitString = new Helpers();
-				String returnedValue = splitString.findValueToKey(response, "secret");
-				
-				//saving the information
-				mPreferenceManager.setSecret(getApplicationContext(), returnedValue);
+				String returnedValue = splitString.findValueToKey(response,
+						"secret");
+
+				// saving the information
+				mPreferenceManager.setSecret(getApplicationContext(),
+						returnedValue);
 				BuildConfig.SECRET = returnedValue;
-				
+
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -82,9 +80,10 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-			
+
+			Intent playIntent = new Intent(this, GameActivity.class);
+			this.startActivity(playIntent);
 		}
 	}
-		
+
 }

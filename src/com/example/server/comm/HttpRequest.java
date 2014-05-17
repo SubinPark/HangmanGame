@@ -32,6 +32,7 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 
 	@Override
 	protected String doInBackground(String... params) {
+		List<NameValuePair> nameValuePairs = null;
 		InputStream inputStream = null;
 		String result = "";
 		
@@ -41,13 +42,23 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 		HttpPost httppost = new HttpPost(
 				"http://strikingly-interview-test.herokuapp.com/guess/process");
 		try {
+			if (params[0].equals(Action.INIT)) {
+				nameValuePairs = new ArrayList<NameValuePair>(2);
+				nameValuePairs.add(new BasicNameValuePair("action", Action.INIT));
+				nameValuePairs.add(new BasicNameValuePair("userId",
+						BuildConfig.USERID));
+			}
+			
+			else if (params[0].equals(Action.NEXT)) {
+				nameValuePairs = new ArrayList<NameValuePair>(3);
+				nameValuePairs.add(new BasicNameValuePair("action", Action.NEXT));
+				nameValuePairs.add(new BasicNameValuePair("userId",
+						BuildConfig.USERID));
+				nameValuePairs.add(new BasicNameValuePair("secret",
+						BuildConfig.SECRET));
+			}
+			
 			// Add your data
-			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(3);
-			nameValuePairs.add(new BasicNameValuePair("action", Action.NEXT));
-			nameValuePairs.add(new BasicNameValuePair("userId",
-					BuildConfig.USERID));
-			nameValuePairs.add(new BasicNameValuePair("secret",
-					"4MT1HQAE05W5EWMIV4QNK10U51NN4S"));
 			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
 		} catch (IOException e) {
