@@ -19,6 +19,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.example.constant.BuildConfig;
 import com.example.preference.PreferenceManager;
 import com.example.server.comm.HttpRequest;
 
@@ -65,6 +66,15 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 			try {
 				String response = new HttpRequest().execute().get();
 				Log.i("http response", response);
+				
+				//splitting the string to find secret
+				Helpers splitString = new Helpers();
+				String returnedValue = splitString.findValueToKey(response, "secret");
+				
+				//saving the information
+				mPreferenceManager.setSecret(getApplicationContext(), returnedValue);
+				BuildConfig.SECRET = returnedValue;
+				
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -72,6 +82,8 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			
+			
 		}
 	}
 		

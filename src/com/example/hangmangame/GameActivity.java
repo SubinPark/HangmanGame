@@ -1,19 +1,6 @@
 package com.example.hangmangame;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.message.BasicNameValuePair;
-
-import com.example.constant.BuildConfig;
-import com.example.constant.Action;
-import com.example.server.comm.HttpHandler;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -21,7 +8,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -34,6 +20,8 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.example.constant.BuildConfig;
 
 /**
  * This is demo code to accompany the Mobiletuts+ tutorial: - Android SDK:
@@ -77,7 +65,7 @@ public class GameActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_game);
 
-		handler(Action.NEXT, "word", BuildConfig.WORD);
+		//handler(Action.NEXT, "word", BuildConfig.WORD);
 		synchronized (this) {
 			try {
 				this.wait(10000);
