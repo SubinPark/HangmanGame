@@ -8,6 +8,17 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin" >
 
+    <LinearLayout
+        android:id="@+id/word"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="1dp"
+        android:background="#FFFFFFFF"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="10dp" >
+    </LinearLayout>
+
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -78,17 +89,6 @@
             android:src="@drawable/android_hangman_leg2" />
     </RelativeLayout>
 
-    <LinearLayout
-        android:id="@+id/word"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:background="#FFFFFFFF"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:padding="10dp" >
-    </LinearLayout>
-
     <GridView
         android:id="@+id/letters"
         android:layout_width="fill_parent"
@@ -102,11 +102,23 @@
         android:stretchMode="columnWidth"
         android:verticalSpacing="5dp" />
 
+    <TextView
+        android:id="@+id/NumberOfGuessAllowedForThisWord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/NumberOfWordsTried"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+
     <Button
         android:id="@+id/next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Next"
+        android:text="Push to Start!"
         android:textColor="#FFFFFFFF" />
 
 </LinearLayout>

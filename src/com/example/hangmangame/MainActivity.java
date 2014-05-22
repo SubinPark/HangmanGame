@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.example.constant.Action;
 import com.example.constant.BuildConfig;
@@ -58,7 +59,7 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 	public void onClick(View v) {
 		if (v.getId() == R.id.playBtn) {
 			//initialize game
-			new HttpRequest().onPreExecute(getApplicationContext());
+			Toast.makeText(getApplicationContext(), "Initializing..!", Toast.LENGTH_LONG).show();
 			try {
 				String response = new HttpRequest().execute(Action.INIT).get();
 				Log.i("http response", response);

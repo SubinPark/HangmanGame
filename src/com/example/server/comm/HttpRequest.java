@@ -26,10 +26,6 @@ import com.example.constant.BuildConfig;
 
 public class HttpRequest extends AsyncTask<String, Void, String> {
 
-	public void onPreExecute(Context context) {
-		Toast.makeText(context, "http", Toast.LENGTH_LONG).show();
-	}
-
 	@Override
 	protected String doInBackground(String... params) {
 		List<NameValuePair> nameValuePairs = null;
@@ -48,7 +44,6 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 				nameValuePairs.add(new BasicNameValuePair("userId",
 						BuildConfig.USERID));
 			}
-			
 			else if (params[0].equals(Action.NEXT)) {
 				nameValuePairs = new ArrayList<NameValuePair>(3);
 				nameValuePairs.add(new BasicNameValuePair("action", Action.NEXT));
@@ -58,6 +53,36 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 						BuildConfig.SECRET));
 			}
 			
+			else if (params[0].equals(Action.GUESS)) {
+				nameValuePairs = new ArrayList<NameValuePair>(4);
+				nameValuePairs.add(new BasicNameValuePair("action", Action.GUESS));
+				nameValuePairs.add(new BasicNameValuePair("userId",
+						BuildConfig.USERID));
+				nameValuePairs.add(new BasicNameValuePair("secret",
+						BuildConfig.SECRET));
+				nameValuePairs.add(new BasicNameValuePair("guess",
+						params[1]));
+			}
+			else if (params[0].equals(Action.GET_RESULT)) {
+				nameValuePairs = new ArrayList<NameValuePair>(3);
+				nameValuePairs.add(new BasicNameValuePair("action", Action.GET_RESULT));
+				nameValuePairs.add(new BasicNameValuePair("userId",
+						BuildConfig.USERID));
+				nameValuePairs.add(new BasicNameValuePair("secret",
+						BuildConfig.SECRET));
+			}
+			else if (params[0].equals(Action.SUBMIT_RESULT)) {
+				nameValuePairs = new ArrayList<NameValuePair>(3);
+				nameValuePairs.add(new BasicNameValuePair("action", Action.SUBMIT_RESULT));
+				nameValuePairs.add(new BasicNameValuePair("userId",
+						BuildConfig.USERID));
+				nameValuePairs.add(new BasicNameValuePair("secret",
+						BuildConfig.SECRET));
+			}
+			
+			
+			
+			
 			// Add your data
 			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
@@ -65,6 +90,7 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 			// TODO Auto-generated catch block
 		}
 
+		
 		// Making HTTP Request
 		try {
 			HttpResponse response = httpClient.execute(httppost);
@@ -88,10 +114,9 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 			e.printStackTrace();
 
 		}
-
 		return result;
 	}
-
+		
 	@Override
 	protected void onPostExecute(String result) {
 		// httpHandler.onResponse(result);

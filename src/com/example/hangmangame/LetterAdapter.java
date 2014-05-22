@@ -7,13 +7,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 
-/**
- * This is demo code to accompany the Mobiletuts+ tutorial:
- * - Android SDK: Create a Hangman Game
- * 
- * Sue Smith - January 2014
- */
-
 public class LetterAdapter extends BaseAdapter {
 
 	//store letters

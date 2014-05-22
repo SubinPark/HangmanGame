@@ -7,19 +7,8 @@ import android.net.NetworkInfo;
 import android.util.Log;
 
 public class Connection {
-	Context context;
 
-	public void connect(Context tmpContext) {
-		context = tmpContext;
-		// check if you are connected or not
-		if (isConnected()) {
-			Log.i("Connection", "Connected");
-		} else {
-			Log.i("Connection", "NOT Connected");
-		}
-	}
-
-	public boolean isConnected() {
+	public static boolean isConnected(Context context) {
 		ConnectivityManager connMgr = (ConnectivityManager) context
 				.getSystemService(Activity.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
