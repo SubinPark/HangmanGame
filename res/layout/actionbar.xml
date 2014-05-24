@@ -12,7 +12,7 @@
         android:layout_margin="5dp"
         android:gravity="center_vertical|right"
         android:paddingRight="20dp"
-        android:text="Back"
+        android:text="Exit"
         android:textColor="#FFFFFF"
         android:textSize="16sp" />
 
@@ -30,11 +30,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right|center_vertical"
-        android:layout_margin="5dp"
+        android:layout_margin="3dp"
         android:gravity="center_vertical|left"
         android:paddingLeft="15dp"
-        android:text="Skip"
+        android:text="Next Word"
         android:textColor="#FFFFFF"
-        android:textSize="16sp" />
+        android:textSize="13sp" />
 
 </FrameLayout>

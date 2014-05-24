@@ -84,6 +84,7 @@ public class GameActivity extends Activity implements OnClickListener {
 		Intent intent = getIntent();
 		// mSecret = intent.getStringExtra("secret"); //commenting out for now
 		// for testing
+		
 		mSecret = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
 		BuildConfig.SECRET = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
 
@@ -109,7 +110,6 @@ public class GameActivity extends Activity implements OnClickListener {
 		// get buttons
 		buttonSkip = (Button) findViewById(R.id.btn_skip);
 		buttonSkip.setOnClickListener(this);
-
 		buttonBack = (Button) findViewById(R.id.btn_back);
 		buttonBack.setOnClickListener(this);
 
@@ -120,8 +120,8 @@ public class GameActivity extends Activity implements OnClickListener {
 		// set home as up
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 
+		//Set up and get a word
 		setPlatform();
-
 		new NextWord(new AfterNextWord()).execute();
 	}
 
@@ -190,7 +190,6 @@ public class GameActivity extends Activity implements OnClickListener {
 					Toast.LENGTH_SHORT).show();
 		}
 		if (v.getId() == R.id.btn_back) {
-			// TODO
 			finish();
 		}
 	}
@@ -216,14 +215,15 @@ public class GameActivity extends Activity implements OnClickListener {
 				// update the word info on screen
 				setPlatform();
 
-				
+				if (currPart == numParts) { //TODO 이게 맞나요?? 
 					if (result2.equals("80")) { // wordsTried is 80
 						Log.i("Guess checking", "That was a 80th word");
 						// showResult
 						disableBtns();
 						new GetTestResults(new AfterGetTestResults()).execute();
 					}
-				
+				}
+
 				setWord(result);
 				currWord = result;
 				wordTriedView.setText("Number of words you have tried: "
@@ -422,6 +422,8 @@ public class GameActivity extends Activity implements OnClickListener {
 		public void onTaskComplete(String returnValue) {
 			Log.i("AfterSubmitTestResults", "So just send it to email");
 			// send the result to my email.
+			sendEmail("subin.c.park@gmail.com", returnValue);
+			/**
 			Intent email = new Intent(Intent.ACTION_SEND);
 			email.putExtra(Intent.EXTRA_EMAIL,
 					new String[] { "subin.c.park@gmail.com" });
@@ -430,7 +432,7 @@ public class GameActivity extends Activity implements OnClickListener {
 			email.putExtra(Intent.EXTRA_TEXT, returnValue);
 			email.setType("message/rfc822");
 			startActivity(Intent.createChooser(email,
-					"Choose an Email client :"));
+					"Choose an Email client :")); **/
 		}
 
 		@Override
@@ -444,5 +446,22 @@ public class GameActivity extends Activity implements OnClickListener {
 
 		}
 	}
+	
+	
+	
+	public void sendEmail(String email, String content) {
+		// send the result to my email.
+		Intent sendEmail = new Intent(Intent.ACTION_SEND);
+		sendEmail.putExtra(Intent.EXTRA_EMAIL,
+				new String[] { email });
+		sendEmail.putExtra(Intent.EXTRA_SUBJECT, "Result from Hangman Game");
+		sendEmail.putExtra(Intent.EXTRA_TEXT, content);
+		sendEmail.setType("message/rfc822");
+		startActivity(Intent.createChooser(sendEmail,
+				"Choose an Email client :"));
+	}
+	
+	
+	
 
 }
