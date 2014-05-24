@@ -25,6 +25,7 @@
         android:paddingTop="15dp" >
 
         <ImageView
+            android:id="@+id/gallows"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:contentDescription="@string/gallows"
@@ -85,6 +86,33 @@
             android:paddingLeft="121dp"
             android:paddingTop="90dp"
             android:src="@drawable/android_hangman_leg2" />
+
+        <ImageView
+            android:id="@+id/shoe1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/shoe"
+            android:paddingLeft="95dp"
+            android:paddingTop="123dp"
+            android:src="@drawable/android_hangman_shoe1" />
+
+        <ImageView
+            android:id="@+id/shoe2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/shoe"
+            android:paddingLeft="130dp"
+            android:paddingTop="123dp"
+            android:src="@drawable/android_hangman_shoe2" />
+
+        <ImageView
+            android:id="@+id/no"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/shoe"
+            android:paddingLeft="150dp"
+            android:paddingTop="23dp"
+            android:src="@drawable/android_hangman_no" />
     </RelativeLayout>
 
     <GridView

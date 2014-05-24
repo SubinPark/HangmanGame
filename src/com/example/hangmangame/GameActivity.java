@@ -59,7 +59,7 @@ public class GameActivity extends Activity implements OnClickListener {
 	private ImageView[] bodyParts;
 
 	// total parts
-	private int numParts = 6;
+	private int numParts = 10;
 
 	// current part
 	private int currPart;
@@ -82,7 +82,10 @@ public class GameActivity extends Activity implements OnClickListener {
 
 		// Get the secret
 		Intent intent = getIntent();
-		mSecret = intent.getStringExtra("secret");
+		// mSecret = intent.getStringExtra("secret"); //commenting out for now
+		// for testing
+		mSecret = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
+		BuildConfig.SECRET = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
 
 		// get answer area
 		textLayout = (LinearLayout) findViewById(R.id.word);
@@ -92,12 +95,16 @@ public class GameActivity extends Activity implements OnClickListener {
 
 		// get body part images
 		bodyParts = new ImageView[numParts];
-		bodyParts[0] = (ImageView) findViewById(R.id.head);
-		bodyParts[1] = (ImageView) findViewById(R.id.body);
-		bodyParts[2] = (ImageView) findViewById(R.id.arm1);
-		bodyParts[3] = (ImageView) findViewById(R.id.arm2);
-		bodyParts[4] = (ImageView) findViewById(R.id.leg1);
-		bodyParts[5] = (ImageView) findViewById(R.id.leg2);
+		bodyParts[0] = (ImageView) findViewById(R.id.gallows);
+		bodyParts[1] = (ImageView) findViewById(R.id.head);
+		bodyParts[2] = (ImageView) findViewById(R.id.body);
+		bodyParts[3] = (ImageView) findViewById(R.id.arm1);
+		bodyParts[4] = (ImageView) findViewById(R.id.arm2);
+		bodyParts[5] = (ImageView) findViewById(R.id.leg1);
+		bodyParts[6] = (ImageView) findViewById(R.id.leg2);
+		bodyParts[7] = (ImageView) findViewById(R.id.shoe1);
+		bodyParts[8] = (ImageView) findViewById(R.id.shoe2);
+		bodyParts[9] = (ImageView) findViewById(R.id.no);
 
 		// get buttons
 		buttonSkip = (Button) findViewById(R.id.btn_skip);
@@ -130,7 +137,7 @@ public class GameActivity extends Activity implements OnClickListener {
 				LayoutParams.WRAP_CONTENT));
 		textView.setGravity(Gravity.CENTER);
 		textView.setTextColor(0xFF6960EC);
-		textView.setTextSize(40);
+		textView.setTextSize(30);
 		textView.setBackgroundResource(R.drawable.letter_bg);
 
 		// remove any existing letters
@@ -146,7 +153,6 @@ public class GameActivity extends Activity implements OnClickListener {
 
 		// start part at zero
 		currPart = 0;
-		// numCorr = 0;
 
 		// hide all parts
 		for (int p = 0; p < numParts; p++) {
@@ -180,9 +186,8 @@ public class GameActivity extends Activity implements OnClickListener {
 	public void onClick(View v) {
 		if (v.getId() == R.id.btn_skip) {
 			new NextWord(new AfterNextWord()).execute();
-			Toast.makeText(getApplicationContext(),
-					R.string.skip, Toast.LENGTH_SHORT)
-					.show();
+			Toast.makeText(getApplicationContext(), R.string.skip,
+					Toast.LENGTH_SHORT).show();
 		}
 		if (v.getId() == R.id.btn_back) {
 			// TODO
@@ -193,6 +198,12 @@ public class GameActivity extends Activity implements OnClickListener {
 	private class AfterNextWord implements AsyncTaskCompleteListener<String> {
 
 		public void onTaskComplete(String returnValue) {
+			if (returnValue.contains("80")) { // wordsTried is 80
+				Log.i("Guess checking2", "That was a 80th word");
+				// showResult
+				disableBtns();
+				new GetTestResults(new AfterGetTestResults()).execute();
+			}
 		}
 
 		@Override
@@ -204,12 +215,23 @@ public class GameActivity extends Activity implements OnClickListener {
 			} else {
 				// update the word info on screen
 				setPlatform();
+
+				
+					if (result2.equals("80")) { // wordsTried is 80
+						Log.i("Guess checking", "That was a 80th word");
+						// showResult
+						disableBtns();
+						new GetTestResults(new AfterGetTestResults()).execute();
+					}
+				
 				setWord(result);
 				currWord = result;
 				wordTriedView.setText("Number of words you have tried: "
 						+ result2);
 				guessAllowedView.setText("Remaining number allowed for guess: "
 						+ result3);
+				numberOfWordsTried = result2;
+				numberOfGuessAllowedForThisWord = result3;
 			}
 
 		}
@@ -251,6 +273,8 @@ public class GameActivity extends Activity implements OnClickListener {
 						guessAllowedView
 								.setText("Remaining number allowed for guess: "
 										+ result3);
+						numberOfWordsTried = result2;
+						numberOfGuessAllowedForThisWord = result3;
 
 					} else { // got all letters correct
 						Log.i("Guess checking", "Got the word right");
@@ -293,13 +317,14 @@ public class GameActivity extends Activity implements OnClickListener {
 					guessAllowedView
 							.setText("Remaining number allowed for guess: "
 									+ result3);
+					numberOfWordsTried = result2;
+					numberOfGuessAllowedForThisWord = result3;
 					if (currPart == numParts) { // maximum guess reached
 						Log.i("Guess checking", "No more guess allowed");
 						if (result2.equals("80")) { // wordsTried is 80
 							Log.i("Guess checking", "That was a 80th word");
-							// TODO showResult();
-
 							disableBtns();
+							// show result
 							new GetTestResults(new AfterGetTestResults())
 									.execute();
 
@@ -361,7 +386,7 @@ public class GameActivity extends Activity implements OnClickListener {
 						GameActivity.this);
 				loseBuild.setTitle("Results");
 				loseBuild.setMessage(returnValue);
-				loseBuild.setPositiveButton("Submit",
+				loseBuild.setPositiveButton("Submit the Result",
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								new SubmitTestResults(
@@ -388,7 +413,6 @@ public class GameActivity extends Activity implements OnClickListener {
 		@Override
 		public void onTaskComplete(String result, String result2,
 				String result3, String result4) {
-
 		}
 	}
 
@@ -396,15 +420,17 @@ public class GameActivity extends Activity implements OnClickListener {
 			AsyncTaskCompleteListener<String> {
 
 		public void onTaskComplete(String returnValue) {
-			Log.i("AfterSubmitTestResults",
-					"Submitted. So just send it to email");
-			// TODO send the result to my email.
+			Log.i("AfterSubmitTestResults", "So just send it to email");
+			// send the result to my email.
 			Intent email = new Intent(Intent.ACTION_SEND);
-			email.putExtra(Intent.EXTRA_EMAIL, new String[]{"subin.c.park@gmail.com"});		  
-			email.putExtra(Intent.EXTRA_SUBJECT, "Result from " + mSecret);
+			email.putExtra(Intent.EXTRA_EMAIL,
+					new String[] { "subin.c.park@gmail.com" });
+			email.putExtra(Intent.EXTRA_SUBJECT, "Result from the key "
+					+ mSecret);
 			email.putExtra(Intent.EXTRA_TEXT, returnValue);
 			email.setType("message/rfc822");
-			startActivity(Intent.createChooser(email, "Choose an Email client :"));
+			startActivity(Intent.createChooser(email,
+					"Choose an Email client :"));
 		}
 
 		@Override

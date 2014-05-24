@@ -91,13 +91,23 @@ public class NextWord extends AsyncTask<String, Void, String> {
 	@Override
 	protected void onPostExecute(String result) {
 		Helpers findKey = new Helpers();
-		String word = findKey.findValueToKey(result, "word");
-		String wordsTried = findKey.findValueToKey(result, "numberOfWordsTried");
-		String guessAllowed = findKey.findValueToKey(result, "numberOfGuessAllowedForThisWord");
-		
-		// Starting callback method
-		if (callback != null)
-			callback.onTaskComplete(word, wordsTried, guessAllowed);
+		// TODO 80번째에는 요밑에 것들이 나오지 않습니다~
+		String message = findKey.findValueToKey(result, "message");
+		if (message.equals("NO_KEY_FOUND_ERROR")) {
+			// there is no message, precede
+			String word = findKey.findValueToKey(result, "word");
+			String wordsTried = findKey.findValueToKey(result,
+					"numberOfWordsTried");
+			String guessAllowed = findKey.findValueToKey(result,
+					"numberOfGuessAllowedForThisWord");
+
+			// Starting callback method
+			if (callback != null)
+				callback.onTaskComplete(word, wordsTried, guessAllowed);
+		} else { //if there's a message
+			if (callback != null)
+				callback.onTaskComplete(message);
+		}
 	}
 
 	private static String convertInputStreamToString(InputStream inputStream)

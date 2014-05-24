@@ -11,6 +11,11 @@ public class Helpers {
 	}
 
 	public String findValueToKey(String result, String KeyToFind) {
+		if(result.contains("<!DOCTYPE html>")) {
+			Log.e("ERROR", "Helper didn't find the key");
+			return "NO_KEY_FOUND_ERROR";
+		}
+		
 		String trimmed = result.replaceAll("\"", "").replaceAll("\\{", "")
 				.replaceAll("\\}", "");
 		String[] pairs = trimmed.split(",");

@@ -46,12 +46,11 @@ public class GetTestResults extends AsyncTask<String, Void, String> {
 
 		// Building the parameters that will send to the server
 		nameValuePairs = new ArrayList<NameValuePair>(4);
-		nameValuePairs.add(new BasicNameValuePair("action",
-				Action.GUESS));
-		nameValuePairs.add(new BasicNameValuePair("userId",
-				BuildConfig.USERID));
-		nameValuePairs.add(new BasicNameValuePair("secret",
-				BuildConfig.SECRET));
+		nameValuePairs.add(new BasicNameValuePair("action", Action.GET_RESULT));
+		nameValuePairs
+				.add(new BasicNameValuePair("userId", BuildConfig.USERID));
+		nameValuePairs
+				.add(new BasicNameValuePair("secret", BuildConfig.SECRET));
 
 		// Add the parameter to HttpPost
 		try {
@@ -89,14 +88,23 @@ public class GetTestResults extends AsyncTask<String, Void, String> {
 	@Override
 	protected void onPostExecute(String result) {
 		Helpers findKey = new Helpers();
-		String wordsTried = findKey.findValueToKey(result, "numberOfWordsTried");
-		String correctWords = findKey.findValueToKey(result, "numberOfCorrectWords");
-		String wrongGuesses = findKey.findValueToKey(result, "numberOfWrongGuesses");
+		String wordsTried = findKey
+				.findValueToKey(result, "numberOfWordsTried");
+		String correctWords = findKey.findValueToKey(result,
+				"numberOfCorrectWords");
+		String wrongGuesses = findKey.findValueToKey(result,
+				"numberOfWrongGuesses");
 		String totalScore = findKey.findValueToKey(result, "totalScore");
-		
+		String returnValue = "Good job! Here is your result. You got "
+				+ correctWords + " out of " + wordsTried + " words tried with "
+				+ wrongGuesses + " wrong guesses. So the total score is "
+				+ totalScore;
+
 		// Starting callback method
 		if (callback != null)
-			callback.onTaskComplete(wordsTried, correctWords, wrongGuesses, totalScore);
+			// callback.onTaskComplete(wordsTried, correctWords, wrongGuesses,
+			// totalScore);
+			callback.onTaskComplete(returnValue);
 	}
 
 	private static String convertInputStreamToString(InputStream inputStream)
