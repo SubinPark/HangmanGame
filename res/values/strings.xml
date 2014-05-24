@@ -9,5 +9,9 @@
     <string name="body">The Body</string>
     <string name="arm">An Arm</string>
     <string name="leg">A Leg</string>
+    
+    <string name="error_on_getting_secret">Can\'t initialize a new game</string>
+    <string name="error_on_getting_word">Can\'t get a word</string>
+    <string name="welcome">Welcome to Hangman Game!</string>
 
 </resources>

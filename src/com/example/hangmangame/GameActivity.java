@@ -1,11 +1,13 @@
 package com.example.hangmangame;
 
-import java.util.concurrent.ExecutionException;
+import java.lang.ref.WeakReference;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,14 +22,18 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.constant.Action;
 import com.example.constant.BuildConfig;
 import com.example.preference.PreferenceManager;
+import com.example.server.comm.AsyncTaskCompleteListener;
 import com.example.server.comm.Connection;
-import com.example.server.comm.HttpRequest;
+import com.example.server.comm.GetTestResults;
+import com.example.server.comm.GuessWord;
+import com.example.server.comm.NextWord;
 
 @SuppressLint("NewApi")
 public class GameActivity extends Activity implements OnClickListener {
+
+	private String mSecret;
 
 	// the words
 	private String currWord;
@@ -70,6 +76,10 @@ public class GameActivity extends Activity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_game);
 
+		// Get the secret
+		Intent intent = getIntent();
+		mSecret = intent.getStringExtra("secret");
+
 		// get answer area
 		textLayout = (LinearLayout) findViewById(R.id.word);
 
@@ -96,23 +106,16 @@ public class GameActivity extends Activity implements OnClickListener {
 		// set home as up
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 
-		Log.e("SecretInGameActivity", BuildConfig.SECRET);
-
 		setPlatform();
-		
-		boolean connection = Connection.isConnected(getApplicationContext());
-		if(connection == false) { //not connected to the internet
-			//TODO
-			Log.e("CONNECTION", "Not connected to the internet");
-			Toast.makeText(getApplicationContext(), "Not connected to the internet", Toast.LENGTH_LONG).show();
-		}
+
+		new NextWord(new AfterNextWord()).execute();
 	}
 
-	private void setWord() {
+	private void setWord(String wordToSet) {
 
 		textView = new TextView(this);
 		// set the current letter
-		textView.setText(BuildConfig.WORD);
+		textView.setText(wordToSet);
 
 		// set layout
 		textView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
@@ -143,120 +146,17 @@ public class GameActivity extends Activity implements OnClickListener {
 	}
 
 	// letter pressed method
-	public void letterPressed(View view) throws InterruptedException,
-			ExecutionException {
-		
+	public void letterPressed(View view) {
+
 		// find out which letter was pressed
 		String ltr = ((TextView) view).getText().toString();
+		Log.i("Letter pressed is", ltr);
 
 		// disable view
 		view.setEnabled(false);
 		view.setBackgroundResource(R.drawable.letter_down);
 
-		// check the guess to the server
-		try {
-			String response = new HttpRequest().execute(Action.GUESS, ltr)
-					.get();
-
-			// splitting the string to find the word
-			Helpers splitString = new Helpers();
-
-			numberOfGuessAllowedForThisWord = splitString.findValueToKey(
-					response, "numberOfGuessAllowedForThisWord");
-			guessAllowedView.setText("Remaining number allowed for guess: "
-					+ numberOfGuessAllowedForThisWord);
-
-			numberOfWordsTried = splitString.findValueToKey(response,
-					"numberOfWordsTried");
-			wordTriedView.setText("Number of words you have tried: "
-					+ numberOfWordsTried);
-
-			String wordReturned = splitString.findValueToKey(response, "word");
-			//TODO wordReturned could be "Error. Push the button more more time". Then this string gets recognized as correct! Because 
-
-			if (!wordReturned.equals(currWord)) { // if the guess is correct // improved from the last word 저 번 단어랑 틀리지만 
-				if (wordReturned.contains("*")) { // but still has *
-					// saving the information and continue playing
-					BuildConfig.WORD = wordReturned;
-					currWord = BuildConfig.WORD;
-					setWord();
-				} else { // got the all letters correct
-					// Display Alert Dialog
-					AlertDialog.Builder loseBuild = new AlertDialog.Builder(
-							this);
-					loseBuild.setTitle("YEAHHHHSSSS");
-					loseBuild.setMessage("You got the word right");
-					loseBuild.setPositiveButton("Next Word",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									GameActivity.this.onClick(buttonNext);
-									// reset!
-									setPlatform();
-								}
-							});
-
-					loseBuild.setNegativeButton("Exit",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									GameActivity.this.finish();
-								}
-							});
-
-					loseBuild.show();
-				}
-			}
-
-			else if (currPart < numParts) { // got it wrong but still have some
-											// quesses left
-				bodyParts[currPart].setVisibility(View.VISIBLE);
-				currPart++;
-				if (currPart == numParts) { // the number of guess allowed is
-											// run over, prompt a dialog
-
-					disableBtns();
-
-					// Display Alert Dialog
-					AlertDialog.Builder loseBuild = new AlertDialog.Builder(
-							this);
-					loseBuild.setTitle("OOPS");
-					loseBuild.setMessage("You didn't get this word right");
-					loseBuild.setPositiveButton("Next Word",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									GameActivity.this.onClick(buttonNext);
-									// reset!
-									setPlatform();
-								}
-							});
-
-					loseBuild.setNegativeButton("Exit",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									GameActivity.this.finish();
-								}
-							});
-
-					loseBuild.show();
-				}
-			}
-
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			e.printStackTrace();
-		}
-
-		if (numberOfWordsTried.equals("80")) { // reaches 80 words --> get test
-												// results
-			String result = new HttpRequest().execute(Action.GET_RESULT).get();
-			// TODO I don't think this should be here..
-			// present the result on the the app
-
-		}
+		new GuessWord(new AfterGuessWord()).execute(ltr);
 
 	}
 
@@ -270,33 +170,231 @@ public class GameActivity extends Activity implements OnClickListener {
 
 	public void onClick(View v) {
 		if (v.getId() == R.id.next) {
+			new NextWord(new AfterNextWord()).execute();
+		}
+	}
 
-			pushToStart = false;
-			try {
-				// request to server and get the next word
-				String response = new HttpRequest().execute(Action.NEXT).get();
-				Log.i("http response in game", response);
+	private class AfterNextWord implements AsyncTaskCompleteListener<String> {
 
-				// splitting the string to find the word
-				Helpers splitString = new Helpers();
-				String returnedValue = splitString.findValueToKey(response,
-						"word");
+		public void onTaskComplete(String returnValue) {
+		}
 
-				// saving the information
-				BuildConfig.WORD = returnedValue;
-
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				e.printStackTrace();
+		@Override
+		public void onTaskComplete(String result, String result2, String result3) {
+			if ("NO_KEY_FOUND_ERROR".equals(result)) {
+				Toast.makeText(getApplicationContext(),
+						R.string.error_on_getting_word, Toast.LENGTH_LONG)
+						.show();
+			} else {
+				// update the word info on screen
+				setWord(result);
+				currWord = result;
+				wordTriedView.setText("Number of words you have tried: "
+						+ result2);
+				guessAllowedView.setText("Remaining number allowed for guess: "
+						+ result3);
 			}
 
-			if (pushToStart == false) {
-				buttonNext.setText("Skip the Word");
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2,
+				String result3, String result4) {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+
+	private class AfterGuessWord implements AsyncTaskCompleteListener<String> {
+
+		public void onTaskComplete(String returnValue) {
+
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2, String result3) {
+			if ("NO_KEY_FOUND_ERROR".equals(result)) {
+				Toast.makeText(getApplicationContext(),
+						R.string.error_on_getting_word, Toast.LENGTH_LONG)
+						.show();
+				Log.e("AFTER_GUESS_WORD_TASK_COMPLETE", "ERROR");
+			} else {
+				// guess is correct
+				Log.i("Guess checking", "No error");
+				if (!result.equals(currWord)) {
+					Log.i("Guess checking", "guess is correct");
+					if (result.contains("*")) { // still has *
+						Log.i("Guess checking", "Still has *");
+						// saving the information and continue playing
+						currWord = result;
+						setWord(result);
+						wordTriedView
+								.setText("Number of words you have tried: "
+										+ result2);
+						guessAllowedView
+								.setText("Remaining number allowed for guess: "
+										+ result3);
+
+					} else { // got all letters correct
+						Log.i("Guess checking", "Got the word right");
+
+						AlertDialog.Builder loseBuild = new AlertDialog.Builder(
+								GameActivity.this);
+						loseBuild.setTitle("YEAHHHHSSSS");
+						loseBuild.setMessage("You got the word right");
+						loseBuild.setPositiveButton("Next Word",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+										GameActivity.this.onClick(buttonNext);
+										// reset!
+										setPlatform();
+									}
+								});
+
+						loseBuild.setNegativeButton("Exit",
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int id) {
+										GameActivity.this.finish();
+									}
+								});
+
+						loseBuild.create().show();
+
+					}
+				}
+
+				// guess is wrong
+				else if (currPart < numParts) { // but still has guessAllowed
+												// left
+					Log.i("Guess checking",
+							"Guess was wrong but still have a chance");
+					bodyParts[currPart].setVisibility(View.VISIBLE);
+					currPart++;
+					setWord(result);
+					wordTriedView.setText("Number of words you have tried: "
+							+ result2);
+					guessAllowedView
+							.setText("Remaining number allowed for guess: "
+									+ result3);
+					if (currPart == numParts) { // maximum guess reached
+						Log.i("Guess checking", "No more guess allowed");
+						if (result2.equals("80")) { // wordsTried is 80
+							Log.i("Guess checking", "That was a 80th word");
+							// TODO showResult();
+
+							disableBtns();
+							// Display Alert Dialog
+							AlertDialog.Builder loseBuild = new AlertDialog.Builder(
+									GameActivity.this);
+							loseBuild.setTitle("Results");
+							loseBuild.setMessage("You finished the game.");
+							loseBuild.setPositiveButton("Submit",
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog, int id) {
+											//GameActivity.this.onClick(submit);
+										}
+									});
+
+							loseBuild.setNegativeButton("Exit",
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog, int id) {
+											GameActivity.this.finish();
+										}
+									});
+
+							loseBuild.create().show();
+
+						} else { // No more guess allowed for this word
+							Log.i("Guess checking",
+									"No more guess for this word, have to get a new word");
+							disableBtns();
+							// Display Alert Dialog
+							AlertDialog.Builder loseBuild = new AlertDialog.Builder(
+									GameActivity.this);
+							loseBuild.setTitle("OOPS");
+							loseBuild
+									.setMessage("You ran out of guess allowed.");
+							loseBuild.setPositiveButton("Next Word",
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog, int id) {
+											GameActivity.this
+													.onClick(buttonNext);
+											// reset!
+											setPlatform();
+										}
+									});
+
+							loseBuild.setNegativeButton("Exit",
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog, int id) {
+											GameActivity.this.finish();
+										}
+									});
+
+							loseBuild.create().show();
+
+						}
+					}
+
+				}
+
 			}
-			currWord = BuildConfig.WORD;
-			// mPreferenceManager.setWord(getApplicationContext(), currWord);
-			setWord();
+
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2,
+				String result3, String result4) {
+			// TODO Auto-generated method stub
+
+		}
+
+	}
+
+	private class AfterGetTestResults implements AsyncTaskCompleteListener<String> {
+
+		public void onTaskComplete(String returnValue) {
+
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2, String result3) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2,
+				String result3, String result4) {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+
+	private class AfterSubmitTestResults implements AsyncTaskCompleteListener<String> {
+
+		public void onTaskComplete(String returnValue) {
+
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2, String result3) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2,
+				String result3, String result4) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 

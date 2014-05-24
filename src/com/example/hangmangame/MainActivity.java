@@ -2,6 +2,7 @@ package com.example.hangmangame;
 
 import java.util.concurrent.ExecutionException;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,7 +19,9 @@ import android.widget.Toast;
 import com.example.constant.Action;
 import com.example.constant.BuildConfig;
 import com.example.preference.PreferenceManager;
+import com.example.server.comm.AsyncTaskCompleteListener;
 import com.example.server.comm.HttpRequest;
+import com.example.server.comm.InitiateGame;
 
 public class MainActivity extends ActionBarActivity implements OnClickListener {
 
@@ -32,9 +35,13 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		//커스톰 액션바 구현.
+		getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM); 
+		getSupportActionBar().setCustomView(R.layout.actionbar);
+		
 		Button playBtn = (Button) findViewById(R.id.playBtn);
 		playBtn.setOnClickListener(this);
-
+		
 		mPreferenceManager = new PreferenceManager();
 	}
 
@@ -58,33 +65,46 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.playBtn) {
-			//initialize game
-			Toast.makeText(getApplicationContext(), "Initializing..!", Toast.LENGTH_LONG).show();
-			try {
-				String response = new HttpRequest().execute(Action.INIT).get();
-				Log.i("http response", response);
-
-				// splitting the string to find secret
-				Helpers splitString = new Helpers();
-				String returnedValue = splitString.findValueToKey(response,
-						"secret");
-
-				// saving the information
-				mPreferenceManager.setSecret(getApplicationContext(),
-						returnedValue);
-				BuildConfig.SECRET = returnedValue;
-
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			Intent playIntent = new Intent(this, GameActivity.class);
-			this.startActivity(playIntent);
+			new InitiateGame(new AfterInitiateGame()).execute();
 		}
+	}
+	
+	private class AfterInitiateGame implements AsyncTaskCompleteListener<String> {
+
+		@Override
+		public void onTaskComplete(String result) {
+			if ("NO_KEY_FOUND_ERROR".equals(result)) {
+				Toast.makeText(mContext, R.string.error_on_getting_secret, Toast.LENGTH_LONG).show();
+			}
+			else {
+				// saving the information
+				//mPreferenceManager.setSecret(getApplicationContext(),result);
+				
+				Toast.makeText(mContext, R.string.welcome, Toast.LENGTH_SHORT).show();
+				
+				BuildConfig.SECRET = result;
+				
+				//Open up the StartActivity
+				Intent playIntent = new Intent(mContext, GameActivity.class);
+				playIntent.putExtra("Secret", result);
+				mContext.startActivity(playIntent);
+			}
+			
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2, String result3) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onTaskComplete(String result, String result2,
+				String result3, String result4) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 
 }

@@ -18,21 +18,21 @@ public class Helpers {
 
 		for (String pair : pairs) {
 			String[] element = pair.split(":");
-			if (element[0].equals("message")) {
-				if (element[1].equals("Invalid Session")) {
-					return "ERROR. Push the Button Again.";
-				}
-			}
-			
-			else if (element[0].contains("<!DOCTYPE html>")) {
-				return "ERROR";
-			}
 
-			else if (element[0].equals("data")) {
+			if (element[0].equals("data")) {
 				if (element[1].equals("numberOfWordsTried")) {
 					key = element[1];
 					value = element[2];
 				} else if (element[1].equals("numberOfGuessAllowedForThisWord")) {
+					key = element[1];
+					value = element[2];
+				} else if (element[1].equals("numberOfCorrectWords")) {
+					key = element[1];
+					value = element[2];
+				}else if (element[1].equals("numberOfWrongGuesses")) {
+					key = element[1];
+					value = element[2];
+				}else if (element[1].equals("totalScore")) {
 					key = element[1];
 					value = element[2];
 				}
@@ -45,11 +45,12 @@ public class Helpers {
 
 			// Now do with key whatever you want with key and value...
 			if (KeyToFind.equals(key)) {
-				Log.i("ReturnValue", value);
+				Log.i("Found the " + key, value);
 				return value;
 			}
 		}
-		return null;
+		Log.e("ERROR", "Helper didn't find the key");
+		return "NO_KEY_FOUND_ERROR";
 	}
 
 }

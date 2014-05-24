@@ -17,16 +17,15 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.constant.Action;
 import com.example.constant.BuildConfig;
-import com.example.server.comm.AsyncTaskCompleteListener;
+import com.example.hangmangame.Helpers;
 
-public class HttpRequest extends AsyncTask<String, Void, String> {
+public class InitiateGame extends AsyncTask<String, Void, String> {
+
 	private final AsyncTaskCompleteListener<String> callback;
 
 	/**
@@ -34,7 +33,7 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 	 * 
 	 * @param callback
 	 */
-	public HttpRequest(AsyncTaskCompleteListener<String> callback) {
+	public InitiateGame(AsyncTaskCompleteListener<String> callback) {
 		this.callback = callback;
 	}
 
@@ -51,57 +50,21 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 				"http://strikingly-interview-test.herokuapp.com/guess/process");
 
 		// Building the parameters that will send to the server
-			if (params[0].equals(Action.INIT)) {
-				nameValuePairs = new ArrayList<NameValuePair>(2);
-				nameValuePairs
-						.add(new BasicNameValuePair("action", Action.INIT));
-				nameValuePairs.add(new BasicNameValuePair("userId",
-						BuildConfig.USERID));
-			} else if (params[0].equals(Action.NEXT)) {
-				nameValuePairs = new ArrayList<NameValuePair>(3);
-				nameValuePairs
-						.add(new BasicNameValuePair("action", Action.NEXT));
-				nameValuePairs.add(new BasicNameValuePair("userId",
-						BuildConfig.USERID));
-				nameValuePairs.add(new BasicNameValuePair("secret",
-						BuildConfig.SECRET));
-			}
 
-			else if (params[0].equals(Action.GUESS)) {
-				nameValuePairs = new ArrayList<NameValuePair>(4);
-				nameValuePairs.add(new BasicNameValuePair("action",
-						Action.GUESS));
-				nameValuePairs.add(new BasicNameValuePair("userId",
-						BuildConfig.USERID));
-				nameValuePairs.add(new BasicNameValuePair("secret",
-						BuildConfig.SECRET));
-				nameValuePairs.add(new BasicNameValuePair("guess", params[1]));
-			} else if (params[0].equals(Action.GET_RESULT)) {
-				nameValuePairs = new ArrayList<NameValuePair>(3);
-				nameValuePairs.add(new BasicNameValuePair("action",
-						Action.GET_RESULT));
-				nameValuePairs.add(new BasicNameValuePair("userId",
-						BuildConfig.USERID));
-				nameValuePairs.add(new BasicNameValuePair("secret",
-						BuildConfig.SECRET));
-			} else if (params[0].equals(Action.SUBMIT_RESULT)) {
-				nameValuePairs = new ArrayList<NameValuePair>(3);
-				nameValuePairs.add(new BasicNameValuePair("action",
-						Action.SUBMIT_RESULT));
-				nameValuePairs.add(new BasicNameValuePair("userId",
-						BuildConfig.USERID));
-				nameValuePairs.add(new BasicNameValuePair("secret",
-						BuildConfig.SECRET));
-			}
-			// Add your data
-			try {
-				httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-			} catch (UnsupportedEncodingException e1) {
-				e1.printStackTrace();
-				return "HttpRequest_Error";
-			}
+		nameValuePairs = new ArrayList<NameValuePair>(2);
+		nameValuePairs.add(new BasicNameValuePair("action", Action.INIT));
+		nameValuePairs
+				.add(new BasicNameValuePair("userId", BuildConfig.USERID));
+		
+		// Add the parameter to HttpPost
+		try {
+			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+		} catch (UnsupportedEncodingException e1) {
+			e1.printStackTrace();
+			return "Error_addingParameter";
+		}
 
-		// Making HTTP Request
+		// Sending the Request
 		try {
 			HttpResponse response = httpClient.execute(httppost);
 
@@ -112,7 +75,7 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 			if (inputStream != null)
 				result = convertInputStreamToString(inputStream);
 			else
-				result = "HttpRequest_Did not work!";
+				result = "Error_convertingString";
 
 			// writing response to log
 			Log.d("Http Response:", result);
@@ -122,14 +85,19 @@ public class HttpRequest extends AsyncTask<String, Void, String> {
 		} catch (IOException e) {
 			// writing exception to log
 			e.printStackTrace();
-
 		}
 		return result;
 	}
 
 	@Override
 	protected void onPostExecute(String result) {
+		String returnString = null;
+		Helpers findKey = new Helpers();
+		String secret = findKey.findValueToKey(result, "secret");
 		
+		// Starting callback method
+		if (callback != null)
+			callback.onTaskComplete(secret);
 	}
 
 	private static String convertInputStreamToString(InputStream inputStream)
