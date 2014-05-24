@@ -1,4 +1,4 @@
-package com.example.hangmangame;
+package com.example.extra;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -11,7 +11,7 @@ public class Helpers {
 	static String key;
 	static String value;
 
-	public static String findValueToKey(String result, String KeyToFind) {
+	public String findValueToKey(String result, String KeyToFind) {
 		if(result.contains("<!DOCTYPE html>")) {
 			Log.e("ERROR", "Helper didn't find the key");
 			return "NO_KEY_FOUND_ERROR";
@@ -20,7 +20,7 @@ public class Helpers {
 		String trimmed = result.replaceAll("\"", "").replaceAll("\\{", "")
 				.replaceAll("\\}", "");
 		String[] pairs = trimmed.split(",");
-		Log.i("Helper", KeyToFind);
+		Log.i("HELPER", "Key to find is " + KeyToFind);
 
 		for (String pair : pairs) {
 			String[] element = pair.split(":");
@@ -46,16 +46,14 @@ public class Helpers {
 				key = element[0];
 				value = element[1];
 			}
-			Log.i("Key", key);
-			Log.i("Value", value);
 
-			// Now do with key whatever you want with key and value...
 			if (KeyToFind.equals(key)) {
 				Log.i("Found the " + key, value);
 				return value;
 			}
 		}
-		Log.e("ERROR", "Helper didn't find the key");
+		
+		Log.e("HELPER", "Helper didn't find the key!!!");
 		return "NO_KEY_FOUND_ERROR";
 	}
 	

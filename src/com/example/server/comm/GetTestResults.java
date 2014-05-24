@@ -1,9 +1,7 @@
 package com.example.server.comm;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +20,15 @@ import android.util.Log;
 
 import com.example.constant.Action;
 import com.example.constant.BuildConfig;
-import com.example.hangmangame.Helpers;
+import com.example.extra.Helpers;
 
-public class GetTestResults extends AsyncTask<String, Void, String> {
+/**
+ * Getting test result.
+ * 
+ * @author SubinPark
+ *
+ */
+public class GetTestResults extends AsyncTask<String, Void, String> implements Action {
 
 	private final AsyncTaskCompleteListener<String> callback;
 
@@ -46,7 +50,7 @@ public class GetTestResults extends AsyncTask<String, Void, String> {
 
 		// Building the parameters that will send to the server
 		nameValuePairs = new ArrayList<NameValuePair>(4);
-		nameValuePairs.add(new BasicNameValuePair("action", Action.GET_RESULT));
+		nameValuePairs.add(new BasicNameValuePair("action", GET_RESULT));
 		nameValuePairs
 				.add(new BasicNameValuePair("userId", BuildConfig.USERID));
 		nameValuePairs

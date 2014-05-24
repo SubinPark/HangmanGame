@@ -1,9 +1,7 @@
 package com.example.server.comm;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +20,16 @@ import android.util.Log;
 
 import com.example.constant.Action;
 import com.example.constant.BuildConfig;
-import com.example.hangmangame.Helpers;
+import com.example.extra.Helpers;
 
-public class InitiateGame extends AsyncTask<String, Void, String> {
+/**
+ * Initiating a game
+ * 
+ * @author SubinPark
+ *
+ */
+
+public class InitiateGame extends AsyncTask<String, Void, String> implements Action {
 
 	private final AsyncTaskCompleteListener<String> callback;
 
@@ -52,7 +57,7 @@ public class InitiateGame extends AsyncTask<String, Void, String> {
 		// Building the parameters that will send to the server
 
 		nameValuePairs = new ArrayList<NameValuePair>(2);
-		nameValuePairs.add(new BasicNameValuePair("action", Action.INIT));
+		nameValuePairs.add(new BasicNameValuePair("action", INIT));
 		nameValuePairs
 				.add(new BasicNameValuePair("userId", BuildConfig.USERID));
 		
@@ -91,7 +96,6 @@ public class InitiateGame extends AsyncTask<String, Void, String> {
 
 	@Override
 	protected void onPostExecute(String result) {
-		String returnString = null;
 		Helpers findKey = new Helpers();
 		String secret = findKey.findValueToKey(result, "secret");
 		

@@ -14,16 +14,12 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.constant.BuildConfig;
-import com.example.preference.PreferenceManager;
 import com.example.server.comm.AsyncTaskCompleteListener;
 import com.example.server.comm.InitiateGame;
 
 public class MainActivity extends ActionBarActivity implements OnClickListener {
 
-	private String mSecret;
 	private Context mContext = this;
-
-	private PreferenceManager mPreferenceManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +32,6 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 		
 		Button playBtn = (Button) findViewById(R.id.playBtn);
 		playBtn.setOnClickListener(this);
-		
-		mPreferenceManager = new PreferenceManager();
 	}
 
 	/**
@@ -65,6 +59,10 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 		}
 	}
 	
+	/**
+	 * Callback of initiateGame action after AsyncTask background finished
+	 *
+	 */
 	private class AfterInitiateGame implements AsyncTaskCompleteListener<String> {
 
 		@Override

@@ -11,9 +11,17 @@
     <string name="leg">A Leg</string>
     <string name="shoe">A Shoe</string>
     
+    <string name="btn_play">Let\'s Play!</string>
     <string name="error_on_getting_secret">Can\'t initialize a new game</string>
     <string name="error_on_getting_word">Can\'t get a word</string>
     <string name="welcome">Welcome to Hangman Game!</string>
     <string name="skip">Getting you a new word!</string>
+    
+    <string name="btn_back">Back</string>
+    <string name="btn_skip">Next Word</string>
+    <string name="game_title">Hangman Game</string>
+    
+    <string name="guess_allowed"></string>
+    <string name="words_tried"></string>
 
 </resources>

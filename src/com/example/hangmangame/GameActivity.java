@@ -18,11 +18,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.constant.BuildConfig;
+import com.example.extra.LetterAdapter;
 import com.example.server.comm.AsyncTaskCompleteListener;
 import com.example.server.comm.GetTestResults;
 import com.example.server.comm.GuessWord;
 import com.example.server.comm.NextWord;
 import com.example.server.comm.SubmitTestResults;
+
 
 @SuppressLint("NewApi")
 public class GameActivity extends Activity implements OnClickListener {
@@ -72,11 +74,8 @@ public class GameActivity extends Activity implements OnClickListener {
 
 		// Get the secret from MainActivity
 		Intent intent = getIntent();
-		mSecret = intent.getStringExtra("secret"); // commenting out for testing
+		mSecret = intent.getStringExtra("secret");
 		BuildConfig.SECRET = mSecret;
-
-		// mSecret = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
-		// BuildConfig.SECRET = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
 
 		// get answer area
 		textLayout = (LinearLayout) findViewById(R.id.word);
@@ -115,28 +114,6 @@ public class GameActivity extends Activity implements OnClickListener {
 		new NextWord(new AfterNextWord()).execute();
 	}
 
-	// letter pressed method
-	public void letterPressed(View view) {
-
-		// find out which letter was pressed
-		String ltr = ((TextView) view).getText().toString();
-		Log.i("Letter pressed is", ltr);
-
-		// disable view
-		view.setEnabled(false);
-		view.setBackgroundResource(R.drawable.letter_down);
-
-		new GuessWord(new AfterGuessWord()).execute(ltr);
-	}
-
-	// disable letter buttons
-	public void disableBtns() {
-		int numLetters = letters.getChildCount();
-		for (int l = 0; l < numLetters; l++) {
-			letters.getChildAt(l).setEnabled(false);
-		}
-	}
-
 	public void onClick(View v) {
 		if (v.getId() == R.id.btn_skip) {
 			new NextWord(new AfterNextWord()).execute();
@@ -148,17 +125,17 @@ public class GameActivity extends Activity implements OnClickListener {
 		}
 	}
 	
-	
-	
-	
-	
-	/////////////////// background callbacks after AsyncTask //////////////////
+	/**
+	 * Callback of every action in this activity after AsyncTask background finished
+	 *
+	 */
 
 	private class AfterNextWord implements AsyncTaskCompleteListener<String> {
 
+		// If http response had a message --> special case
 		public void onTaskComplete(String returnValue) {
 			if (returnValue.contains("80")) { // wordsTried is 80
-				Log.i("Guess checking2", "That was a 80th word");
+				Log.i("AFTER_NEXT_WORD", "80th word");
 				// showResult
 				disableBtns();
 				new GetTestResults(new AfterGetTestResults()).execute();
@@ -166,7 +143,8 @@ public class GameActivity extends Activity implements OnClickListener {
 		}
 
 		@Override
-		public void onTaskComplete(String word, String wordsTried, String guessAllowed) {
+		public void onTaskComplete(String word, String wordsTried,
+				String guessAllowed) {
 			if ("NO_KEY_FOUND_ERROR".equals(word)) {
 				Toast.makeText(getApplicationContext(),
 						R.string.error_on_getting_word, Toast.LENGTH_LONG)
@@ -175,9 +153,11 @@ public class GameActivity extends Activity implements OnClickListener {
 				// update the word info on screen
 				setPlatform();
 
-				if (currPart == numParts) { // TODO 이게 맞나요??
-					if (wordsTried.equals("80")) { // wordsTried is 80
-						Log.i("Guess checking", "That was a 80th word");
+				// If no more guess is allowed
+				if (currPart == numParts) { // TODO 다시 체크
+					if (wordsTried.equals("80")) {
+						Log.i("AFTER_NEXT_WORD",
+								"No more guess allowed and is 80th word");
 						// showResult
 						disableBtns();
 						new GetTestResults(new AfterGetTestResults()).execute();
@@ -185,7 +165,6 @@ public class GameActivity extends Activity implements OnClickListener {
 				}
 				setWordViews(word, wordsTried, guessAllowed);
 			}
-
 		}
 
 	}
@@ -196,54 +175,58 @@ public class GameActivity extends Activity implements OnClickListener {
 		}
 
 		@Override
-		public void onTaskComplete(String word, String wordsTried, String guessAllowed) {
+		public void onTaskComplete(String word, String wordsTried,
+				String guessAllowed) {
+			// error checking
 			if ("NO_KEY_FOUND_ERROR".equals(word)) {
 				Toast.makeText(getApplicationContext(),
 						R.string.error_on_getting_word, Toast.LENGTH_LONG)
 						.show();
-				Log.e("AFTER_GUESS_WORD_TASK_COMPLETE", "ERROR");
+				Log.e("AFTER_GUESS_WORD", "ERROR");
 			} else {
 				// guess is correct
-				Log.i("Guess checking", "No error");
+				Log.i("AFTER_GUESS_WORD", "No error");
 				if (!word.equals(currWord)) {
-					Log.i("Guess checking", "guess is correct");
+					Log.i("AFTER_GUESS_WORD", "guess is correct");
 					if (word.contains("*")) { // still has *
-						Log.i("Guess checking", "Still has *");
+						Log.i("AFTER_GUESS_WORD", "Still has *");
 						// saving the information and continue playing
 						setWordViews(word, wordsTried, guessAllowed);
 
-					} else { // got all letters correct
-						Log.i("Guess checking", "Got the word right");
-						showNextWordPromptDialog("YEAHHHSSSS", "You got the word right!");
+					} else {
+						// got all letters correct
+						Log.i("AFTER_GUESS_WORD", "Got the word right");
+						showNextWordPromptDialog("YEAHHHSSSS",
+								"You got the word right!");
 					}
 				}
 
 				// guess is wrong
 				else if (currPart < numParts) { // but still has guessAllowed
 												// left
-					Log.i("Guess checking",
+					Log.i("AFTER_GUESS_WORD",
 							"Guess was wrong but still have a chance");
 					bodyParts[currPart].setVisibility(View.VISIBLE);
 					currPart++;
 					setWordViews(word, wordsTried, guessAllowed);
-					
-					if (currPart == numParts) { // maximum guess reached
-						Log.i("Guess checking", "No more guess allowed");
+
+					// maximum guess reached
+					if (currPart == numParts) {
+						Log.i("AFTER_GUESS_WORD", "No more guess allowed");
 						if (wordsTried.equals("80")) { // wordsTried is 80
-							Log.i("Guess checking", "That was a 80th word");
+							Log.i("AFTER_GUESS_WORD", "80th word");
 							disableBtns();
 							// show result
 							new GetTestResults(new AfterGetTestResults())
 									.execute();
 
 						} else { // No more guess allowed for this word
-							Log.i("Guess checking",
-									"No more guess for this word, have to get a new word");
+							Log.i("AFTER_GUESS_WORD",
+									"No more guess for this word");
 							disableBtns();
 							// Display Alert Dialog
 							showNextWordPromptDialog("OOPS",
 									"You ran out of guess allowed.");
-
 						}
 					}
 
@@ -261,28 +244,9 @@ public class GameActivity extends Activity implements OnClickListener {
 		public void onTaskComplete(String returnValue) {
 			if ("Error".equals(returnValue)) {
 				// error checking
+				Log.e("AFTER_GET_TEST_RESULTS", "ERROR");
 			} else {
-				// Display Alert Dialog
-				AlertDialog.Builder loseBuild = new AlertDialog.Builder(
-						GameActivity.this);
-				loseBuild.setTitle("Results");
-				loseBuild.setMessage(returnValue);
-				loseBuild.setPositiveButton("Submit the Result",
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int id) {
-								new SubmitTestResults(
-										new AfterSubmitTestResults()).execute();
-							}
-						});
-
-				loseBuild.setNegativeButton("Exit",
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int id) {
-								GameActivity.this.finish();
-							}
-						});
-
-				loseBuild.create().show();
+				showSubmitResultPromptDialog(returnValue);
 			}
 		}
 
@@ -296,9 +260,9 @@ public class GameActivity extends Activity implements OnClickListener {
 			AsyncTaskCompleteListener<String> {
 
 		public void onTaskComplete(String returnValue) {
-			Log.i("AfterSubmitTestResults", "So just send it to email");
+			Log.i("AFTER_SUBMIT_TEST_RESULTS", "Send the result to email");
 			// send the result to my email.
-			sendEmail("subin.c.park@gmail.com", returnValue);
+			sendEmail("joyce@strikingly.com", returnValue);
 		}
 
 		@Override
@@ -306,14 +270,12 @@ public class GameActivity extends Activity implements OnClickListener {
 
 		}
 	}
-	
-	
-	
-	
-	
-	
-	/////////////////////Methos/////////////////
 
+	/**
+	 * 
+	 * Methods for setup
+	 *
+	 */
 	private void setPlatform() {
 		// reset adapter
 		ltrAdapt = new LetterAdapter(this);
@@ -329,14 +291,13 @@ public class GameActivity extends Activity implements OnClickListener {
 	}
 	
 	public void setWordViews(String word, String wordsTried, String guessAllowed) {
-		currWord = word;				
+		currWord = word;
 		setWord(word);
-		wordTriedView.setText("Number of words you have tried: "
-								+ wordsTried);
+		wordTriedView.setText("Number of words you have tried: " + wordsTried);
 		guessAllowedView.setText("Remaining number allowed for guess: "
-								+ guessAllowed);
+				+ guessAllowed);
 	}
-	
+
 	private void setWord(String wordToSet) {
 
 		textView = new TextView(this);
@@ -351,11 +312,32 @@ public class GameActivity extends Activity implements OnClickListener {
 
 		// remove any existing letters
 		textLayout.removeAllViews();
-		
+
 		textLayout.addView(textView);
 	}
-	
-	
+
+	// letter pressed method
+	public void letterPressed(View view) {
+
+		// find out which letter was pressed
+		String ltr = ((TextView) view).getText().toString();
+		Log.i("LETTER PRESSED", ltr);
+
+		// disable view
+		view.setEnabled(false);
+		view.setBackgroundResource(R.drawable.letter_down);
+
+		new GuessWord(new AfterGuessWord()).execute(ltr);
+	}
+
+	// disable letter buttons
+	public void disableBtns() {
+		int numLetters = letters.getChildCount();
+		for (int l = 0; l < numLetters; l++) {
+			letters.getChildAt(l).setEnabled(false);
+		}
+	}
+
 	public void sendEmail(String email, String content) {
 		// send the result to my email.
 		Intent sendEmail = new Intent(Intent.ACTION_SEND);
@@ -367,6 +349,12 @@ public class GameActivity extends Activity implements OnClickListener {
 				"Choose an Email client :"));
 	}
 
+	
+	/**
+	 * Dialog Builders
+	 *
+	 * @param title, message
+	 */
 	public void showNextWordPromptDialog(String title, String message) {
 		AlertDialog.Builder loseBuild = new AlertDialog.Builder(
 				GameActivity.this);
@@ -376,6 +364,30 @@ public class GameActivity extends Activity implements OnClickListener {
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
 						GameActivity.this.onClick(buttonSkip);
+					}
+				});
+
+		loseBuild.setNegativeButton("Exit",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						GameActivity.this.finish();
+					}
+				});
+
+		loseBuild.create().show();
+	}
+
+	public void showSubmitResultPromptDialog(String message) {
+		// Display Alert Dialog
+		AlertDialog.Builder loseBuild = new AlertDialog.Builder(
+				GameActivity.this);
+		loseBuild.setTitle("Results");
+		loseBuild.setMessage(message);
+		loseBuild.setPositiveButton("Submit the Result",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						new SubmitTestResults(new AfterSubmitTestResults())
+								.execute();
 					}
 				});
 

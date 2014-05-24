@@ -1,9 +1,7 @@
 package com.example.server.comm;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +20,15 @@ import android.util.Log;
 
 import com.example.constant.Action;
 import com.example.constant.BuildConfig;
-import com.example.hangmangame.Helpers;
+import com.example.extra.Helpers;
 
-public class SubmitTestResults extends AsyncTask<String, Void, String> {
+/**
+ * Submitting the result
+ * 
+ * @author SubinPark
+ *
+ */
+public class SubmitTestResults extends AsyncTask<String, Void, String> implements Action {
 
 	private final AsyncTaskCompleteListener<String> callback;
 
@@ -47,7 +51,7 @@ public class SubmitTestResults extends AsyncTask<String, Void, String> {
 		// Building the parameters that will send to the server
 		nameValuePairs = new ArrayList<NameValuePair>(4);
 		nameValuePairs.add(new BasicNameValuePair("action",
-				Action.GUESS));
+				SUBMIT_RESULT));
 		nameValuePairs.add(new BasicNameValuePair("userId",
 				BuildConfig.USERID));
 		nameValuePairs.add(new BasicNameValuePair("secret",
@@ -88,11 +92,6 @@ public class SubmitTestResults extends AsyncTask<String, Void, String> {
 
 	@Override
 	protected void onPostExecute(String result) {
-		Log.d("Submitted! ", "yes");
-		Log.d("Submitted! ", "Just implement it to send it to joyce email!");
-		
-		//TODO Error check first
-		
 		// Starting callback method
 		if (callback != null)
 			callback.onTaskComplete(result);

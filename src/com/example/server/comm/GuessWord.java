@@ -1,9 +1,7 @@
 package com.example.server.comm;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,15 +15,20 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-import android.app.AlertDialog;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.example.constant.Action;
 import com.example.constant.BuildConfig;
-import com.example.hangmangame.Helpers;
+import com.example.extra.Helpers;
 
-public class GuessWord extends AsyncTask<String, Void, String> {
+/**
+ * Checking if the guess was right.
+ * 
+ * @author SubinPark
+ *
+ */
+public class GuessWord extends AsyncTask<String, Void, String> implements Action {
 
 	private final AsyncTaskCompleteListener<String> callback;
 
@@ -48,7 +51,7 @@ public class GuessWord extends AsyncTask<String, Void, String> {
 		// Building the parameters that will send to the server
 		nameValuePairs = new ArrayList<NameValuePair>(4);
 		nameValuePairs.add(new BasicNameValuePair("action",
-				Action.GUESS));
+				GUESS));
 		nameValuePairs.add(new BasicNameValuePair("userId",
 				BuildConfig.USERID));
 		nameValuePairs.add(new BasicNameValuePair("secret",

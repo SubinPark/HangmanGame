@@ -1,9 +1,7 @@
 package com.example.server.comm;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,14 +17,18 @@ import org.apache.http.message.BasicNameValuePair;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.example.constant.Action;
 import com.example.constant.BuildConfig;
-import com.example.hangmangame.Helpers;
-import com.example.hangmangame.R;
+import com.example.extra.Helpers;
 
-public class NextWord extends AsyncTask<String, Void, String> {
+/**
+ * Getting the next word
+ * 
+ * @author SubinPark
+ *
+ */
+public class NextWord extends AsyncTask<String, Void, String> implements Action {
 
 	private final AsyncTaskCompleteListener<String> callback;
 
@@ -49,7 +51,7 @@ public class NextWord extends AsyncTask<String, Void, String> {
 		// Building the parameters that will send to the server
 
 		nameValuePairs = new ArrayList<NameValuePair>(3);
-		nameValuePairs.add(new BasicNameValuePair("action", Action.NEXT));
+		nameValuePairs.add(new BasicNameValuePair("action", NEXT));
 		nameValuePairs
 				.add(new BasicNameValuePair("userId", BuildConfig.USERID));
 		nameValuePairs
@@ -93,7 +95,6 @@ public class NextWord extends AsyncTask<String, Void, String> {
 	@Override
 	protected void onPostExecute(String result) {
 		Helpers findKey = new Helpers();
-		// TODO 80번째에는 요밑에 것들이 나오지 않습니다~
 		String message = findKey.findValueToKey(result, "message");
 		if (message.equals("NO_KEY_FOUND_ERROR")) {
 			// there is no message, precede
