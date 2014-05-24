@@ -3,12 +3,14 @@ package com.example.hangmangame;
 import java.lang.ref.WeakReference;
 
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -29,6 +31,7 @@ import com.example.server.comm.Connection;
 import com.example.server.comm.GetTestResults;
 import com.example.server.comm.GuessWord;
 import com.example.server.comm.NextWord;
+import com.example.server.comm.SubmitTestResults;
 
 @SuppressLint("NewApi")
 public class GameActivity extends Activity implements OnClickListener {
@@ -62,19 +65,20 @@ public class GameActivity extends Activity implements OnClickListener {
 	private int currPart;
 
 	// Next button
-	private Button buttonNext;
+	private Button buttonSkip;
+	private Button buttonBack;
 
 	private String numberOfGuessAllowedForThisWord;
 	private String numberOfWordsTried;
-
-	private boolean pushToStart = true;
-
-	private PreferenceManager mPreferenceManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_game);
+
+		// 커스톰 액션바 구현.
+		getActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+		getActionBar().setCustomView(R.layout.actionbar);
 
 		// Get the secret
 		Intent intent = getIntent();
@@ -95,9 +99,12 @@ public class GameActivity extends Activity implements OnClickListener {
 		bodyParts[4] = (ImageView) findViewById(R.id.leg1);
 		bodyParts[5] = (ImageView) findViewById(R.id.leg2);
 
-		// get button
-		buttonNext = (Button) findViewById(R.id.next);
-		buttonNext.setOnClickListener(this);
+		// get buttons
+		buttonSkip = (Button) findViewById(R.id.btn_skip);
+		buttonSkip.setOnClickListener(this);
+
+		buttonBack = (Button) findViewById(R.id.btn_back);
+		buttonBack.setOnClickListener(this);
 
 		// get textviews
 		wordTriedView = (TextView) findViewById(R.id.NumberOfWordsTried);
@@ -114,6 +121,7 @@ public class GameActivity extends Activity implements OnClickListener {
 	private void setWord(String wordToSet) {
 
 		textView = new TextView(this);
+
 		// set the current letter
 		textView.setText(wordToSet);
 
@@ -121,7 +129,8 @@ public class GameActivity extends Activity implements OnClickListener {
 		textView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
 		textView.setGravity(Gravity.CENTER);
-		textView.setTextColor(Color.BLACK);
+		textView.setTextColor(0xFF6960EC);
+		textView.setTextSize(40);
 		textView.setBackgroundResource(R.drawable.letter_bg);
 
 		// remove any existing letters
@@ -169,8 +178,15 @@ public class GameActivity extends Activity implements OnClickListener {
 	}
 
 	public void onClick(View v) {
-		if (v.getId() == R.id.next) {
+		if (v.getId() == R.id.btn_skip) {
 			new NextWord(new AfterNextWord()).execute();
+			Toast.makeText(getApplicationContext(),
+					R.string.skip, Toast.LENGTH_SHORT)
+					.show();
+		}
+		if (v.getId() == R.id.btn_back) {
+			// TODO
+			finish();
 		}
 	}
 
@@ -187,6 +203,7 @@ public class GameActivity extends Activity implements OnClickListener {
 						.show();
 			} else {
 				// update the word info on screen
+				setPlatform();
 				setWord(result);
 				currWord = result;
 				wordTriedView.setText("Number of words you have tried: "
@@ -200,7 +217,6 @@ public class GameActivity extends Activity implements OnClickListener {
 		@Override
 		public void onTaskComplete(String result, String result2,
 				String result3, String result4) {
-			// TODO Auto-generated method stub
 
 		}
 
@@ -247,9 +263,7 @@ public class GameActivity extends Activity implements OnClickListener {
 								new DialogInterface.OnClickListener() {
 									public void onClick(DialogInterface dialog,
 											int id) {
-										GameActivity.this.onClick(buttonNext);
-										// reset!
-										setPlatform();
+										GameActivity.this.onClick(buttonSkip);
 									}
 								});
 
@@ -286,28 +300,8 @@ public class GameActivity extends Activity implements OnClickListener {
 							// TODO showResult();
 
 							disableBtns();
-							// Display Alert Dialog
-							AlertDialog.Builder loseBuild = new AlertDialog.Builder(
-									GameActivity.this);
-							loseBuild.setTitle("Results");
-							loseBuild.setMessage("You finished the game.");
-							loseBuild.setPositiveButton("Submit",
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog, int id) {
-											//GameActivity.this.onClick(submit);
-										}
-									});
-
-							loseBuild.setNegativeButton("Exit",
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog, int id) {
-											GameActivity.this.finish();
-										}
-									});
-
-							loseBuild.create().show();
+							new GetTestResults(new AfterGetTestResults())
+									.execute();
 
 						} else { // No more guess allowed for this word
 							Log.i("Guess checking",
@@ -324,9 +318,7 @@ public class GameActivity extends Activity implements OnClickListener {
 										public void onClick(
 												DialogInterface dialog, int id) {
 											GameActivity.this
-													.onClick(buttonNext);
-											// reset!
-											setPlatform();
+													.onClick(buttonSkip);
 										}
 									});
 
@@ -352,49 +344,78 @@ public class GameActivity extends Activity implements OnClickListener {
 		@Override
 		public void onTaskComplete(String result, String result2,
 				String result3, String result4) {
-			// TODO Auto-generated method stub
 
 		}
 
 	}
 
-	private class AfterGetTestResults implements AsyncTaskCompleteListener<String> {
+	private class AfterGetTestResults implements
+			AsyncTaskCompleteListener<String> {
 
 		public void onTaskComplete(String returnValue) {
+			if ("Error".equals(returnValue)) {
+				// error checking
+			} else {
+				// Display Alert Dialog
+				AlertDialog.Builder loseBuild = new AlertDialog.Builder(
+						GameActivity.this);
+				loseBuild.setTitle("Results");
+				loseBuild.setMessage(returnValue);
+				loseBuild.setPositiveButton("Submit",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								new SubmitTestResults(
+										new AfterSubmitTestResults()).execute();
+							}
+						});
 
+				loseBuild.setNegativeButton("Exit",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog, int id) {
+								GameActivity.this.finish();
+							}
+						});
+
+				loseBuild.create().show();
+			}
 		}
 
 		@Override
 		public void onTaskComplete(String result, String result2, String result3) {
-			// TODO Auto-generated method stub
-			
+
 		}
 
 		@Override
 		public void onTaskComplete(String result, String result2,
 				String result3, String result4) {
-			// TODO Auto-generated method stub
-			
+
 		}
 	}
 
-	private class AfterSubmitTestResults implements AsyncTaskCompleteListener<String> {
+	private class AfterSubmitTestResults implements
+			AsyncTaskCompleteListener<String> {
 
 		public void onTaskComplete(String returnValue) {
-
+			Log.i("AfterSubmitTestResults",
+					"Submitted. So just send it to email");
+			// TODO send the result to my email.
+			Intent email = new Intent(Intent.ACTION_SEND);
+			email.putExtra(Intent.EXTRA_EMAIL, new String[]{"subin.c.park@gmail.com"});		  
+			email.putExtra(Intent.EXTRA_SUBJECT, "Result from " + mSecret);
+			email.putExtra(Intent.EXTRA_TEXT, returnValue);
+			email.setType("message/rfc822");
+			startActivity(Intent.createChooser(email, "Choose an Email client :"));
 		}
 
 		@Override
 		public void onTaskComplete(String result, String result2, String result3) {
-			// TODO Auto-generated method stub
-			
+
 		}
 
 		@Override
 		public void onTaskComplete(String result, String result2,
 				String result3, String result4) {
-			// TODO Auto-generated method stub
-			
+
 		}
 	}
 

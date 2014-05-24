@@ -91,9 +91,11 @@ public class SubmitTestResults extends AsyncTask<String, Void, String> {
 		Log.d("Submitted! ", "yes");
 		Log.d("Submitted! ", "Just implement it to send it to joyce email!");
 		
+		//TODO Error check first
+		
 		// Starting callback method
 		if (callback != null)
-			//callback.onTaskComplete(wordsTried, correctWords, wrongGuesses, totalScore);
+			callback.onTaskComplete(result);
 	}
 
 	private static String convertInputStreamToString(InputStream inputStream)
