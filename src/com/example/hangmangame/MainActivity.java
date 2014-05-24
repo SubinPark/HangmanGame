@@ -1,14 +1,11 @@
 package com.example.hangmangame;
 
-import java.util.concurrent.ExecutionException;
-
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -16,11 +13,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.constant.Action;
 import com.example.constant.BuildConfig;
 import com.example.preference.PreferenceManager;
 import com.example.server.comm.AsyncTaskCompleteListener;
-import com.example.server.comm.HttpRequest;
 import com.example.server.comm.InitiateGame;
 
 public class MainActivity extends ActionBarActivity implements OnClickListener {
@@ -37,7 +32,7 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 
 		//커스톰 액션바 구현.
 		getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM); 
-		getSupportActionBar().setCustomView(R.layout.actionbar);
+		getSupportActionBar().setCustomView(R.layout.actionbar_main);
 		
 		Button playBtn = (Button) findViewById(R.id.playBtn);
 		playBtn.setOnClickListener(this);
@@ -65,6 +60,7 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.playBtn) {
+			Toast.makeText(mContext, "Initializing. Can take up to 1 min.", Toast.LENGTH_SHORT).show();
 			new InitiateGame(new AfterInitiateGame()).execute();
 		}
 	}
@@ -78,15 +74,13 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 			}
 			else {
 				// saving the information
-				//mPreferenceManager.setSecret(getApplicationContext(),result);
-				
 				Toast.makeText(mContext, R.string.welcome, Toast.LENGTH_SHORT).show();
 				
 				BuildConfig.SECRET = result;
 				
-				//Open up the StartActivity
+				//Open up the GameActivity
 				Intent playIntent = new Intent(mContext, GameActivity.class);
-				playIntent.putExtra("Secret", result);
+				playIntent.putExtra("secret", result);
 				mContext.startActivity(playIntent);
 			}
 			
@@ -94,15 +88,6 @@ public class MainActivity extends ActionBarActivity implements OnClickListener {
 
 		@Override
 		public void onTaskComplete(String result, String result2, String result3) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onTaskComplete(String result, String result2,
-				String result3, String result4) {
-			// TODO Auto-generated method stub
-			
 		}
 		
 	}

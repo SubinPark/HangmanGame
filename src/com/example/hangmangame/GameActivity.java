@@ -1,22 +1,15 @@
 package com.example.hangmangame;
 
-import java.lang.ref.WeakReference;
-
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -25,9 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.constant.BuildConfig;
-import com.example.preference.PreferenceManager;
 import com.example.server.comm.AsyncTaskCompleteListener;
-import com.example.server.comm.Connection;
 import com.example.server.comm.GetTestResults;
 import com.example.server.comm.GuessWord;
 import com.example.server.comm.NextWord;
@@ -35,7 +26,6 @@ import com.example.server.comm.SubmitTestResults;
 
 @SuppressLint("NewApi")
 public class GameActivity extends Activity implements OnClickListener {
-
 	private String mSecret;
 
 	// the words
@@ -76,17 +66,17 @@ public class GameActivity extends Activity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_game);
 
-		// 커스톰 액션바 구현.
+		// Customize action bar
 		getActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-		getActionBar().setCustomView(R.layout.actionbar);
+		getActionBar().setCustomView(R.layout.actionbar_game);
 
-		// Get the secret
+		// Get the secret from MainActivity
 		Intent intent = getIntent();
-		// mSecret = intent.getStringExtra("secret"); //commenting out for now
-		// for testing
-		
-		mSecret = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
-		BuildConfig.SECRET = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
+		mSecret = intent.getStringExtra("secret"); // commenting out for testing
+		BuildConfig.SECRET = mSecret;
+
+		// mSecret = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
+		// BuildConfig.SECRET = "IZEBSRVCRFJKBJ4IE880V14YJVE7B9";
 
 		// get answer area
 		textLayout = (LinearLayout) findViewById(R.id.word);
@@ -120,44 +110,9 @@ public class GameActivity extends Activity implements OnClickListener {
 		// set home as up
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 
-		//Set up and get a word
+		// Set up and get a word
 		setPlatform();
 		new NextWord(new AfterNextWord()).execute();
-	}
-
-	private void setWord(String wordToSet) {
-
-		textView = new TextView(this);
-
-		// set the current letter
-		textView.setText(wordToSet);
-
-		// set layout
-		textView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT,
-				LayoutParams.WRAP_CONTENT));
-		textView.setGravity(Gravity.CENTER);
-		textView.setTextColor(0xFF6960EC);
-		textView.setTextSize(30);
-		textView.setBackgroundResource(R.drawable.letter_bg);
-
-		// remove any existing letters
-		textLayout.removeAllViews();
-
-		textLayout.addView(textView);
-	}
-
-	private void setPlatform() {
-		// reset adapter
-		ltrAdapt = new LetterAdapter(this);
-		letters.setAdapter(ltrAdapt);
-
-		// start part at zero
-		currPart = 0;
-
-		// hide all parts
-		for (int p = 0; p < numParts; p++) {
-			bodyParts[p].setVisibility(View.INVISIBLE);
-		}
 	}
 
 	// letter pressed method
@@ -172,7 +127,6 @@ public class GameActivity extends Activity implements OnClickListener {
 		view.setBackgroundResource(R.drawable.letter_down);
 
 		new GuessWord(new AfterGuessWord()).execute(ltr);
-
 	}
 
 	// disable letter buttons
@@ -193,6 +147,12 @@ public class GameActivity extends Activity implements OnClickListener {
 			finish();
 		}
 	}
+	
+	
+	
+	
+	
+	/////////////////// background callbacks after AsyncTask //////////////////
 
 	private class AfterNextWord implements AsyncTaskCompleteListener<String> {
 
@@ -206,8 +166,8 @@ public class GameActivity extends Activity implements OnClickListener {
 		}
 
 		@Override
-		public void onTaskComplete(String result, String result2, String result3) {
-			if ("NO_KEY_FOUND_ERROR".equals(result)) {
+		public void onTaskComplete(String word, String wordsTried, String guessAllowed) {
+			if ("NO_KEY_FOUND_ERROR".equals(word)) {
 				Toast.makeText(getApplicationContext(),
 						R.string.error_on_getting_word, Toast.LENGTH_LONG)
 						.show();
@@ -215,30 +175,16 @@ public class GameActivity extends Activity implements OnClickListener {
 				// update the word info on screen
 				setPlatform();
 
-				if (currPart == numParts) { //TODO 이게 맞나요?? 
-					if (result2.equals("80")) { // wordsTried is 80
+				if (currPart == numParts) { // TODO 이게 맞나요??
+					if (wordsTried.equals("80")) { // wordsTried is 80
 						Log.i("Guess checking", "That was a 80th word");
 						// showResult
 						disableBtns();
 						new GetTestResults(new AfterGetTestResults()).execute();
 					}
 				}
-
-				setWord(result);
-				currWord = result;
-				wordTriedView.setText("Number of words you have tried: "
-						+ result2);
-				guessAllowedView.setText("Remaining number allowed for guess: "
-						+ result3);
-				numberOfWordsTried = result2;
-				numberOfGuessAllowedForThisWord = result3;
+				setWordViews(word, wordsTried, guessAllowed);
 			}
-
-		}
-
-		@Override
-		public void onTaskComplete(String result, String result2,
-				String result3, String result4) {
 
 		}
 
@@ -247,12 +193,11 @@ public class GameActivity extends Activity implements OnClickListener {
 	private class AfterGuessWord implements AsyncTaskCompleteListener<String> {
 
 		public void onTaskComplete(String returnValue) {
-
 		}
 
 		@Override
-		public void onTaskComplete(String result, String result2, String result3) {
-			if ("NO_KEY_FOUND_ERROR".equals(result)) {
+		public void onTaskComplete(String word, String wordsTried, String guessAllowed) {
+			if ("NO_KEY_FOUND_ERROR".equals(word)) {
 				Toast.makeText(getApplicationContext(),
 						R.string.error_on_getting_word, Toast.LENGTH_LONG)
 						.show();
@@ -260,47 +205,16 @@ public class GameActivity extends Activity implements OnClickListener {
 			} else {
 				// guess is correct
 				Log.i("Guess checking", "No error");
-				if (!result.equals(currWord)) {
+				if (!word.equals(currWord)) {
 					Log.i("Guess checking", "guess is correct");
-					if (result.contains("*")) { // still has *
+					if (word.contains("*")) { // still has *
 						Log.i("Guess checking", "Still has *");
 						// saving the information and continue playing
-						currWord = result;
-						setWord(result);
-						wordTriedView
-								.setText("Number of words you have tried: "
-										+ result2);
-						guessAllowedView
-								.setText("Remaining number allowed for guess: "
-										+ result3);
-						numberOfWordsTried = result2;
-						numberOfGuessAllowedForThisWord = result3;
+						setWordViews(word, wordsTried, guessAllowed);
 
 					} else { // got all letters correct
 						Log.i("Guess checking", "Got the word right");
-
-						AlertDialog.Builder loseBuild = new AlertDialog.Builder(
-								GameActivity.this);
-						loseBuild.setTitle("YEAHHHHSSSS");
-						loseBuild.setMessage("You got the word right");
-						loseBuild.setPositiveButton("Next Word",
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int id) {
-										GameActivity.this.onClick(buttonSkip);
-									}
-								});
-
-						loseBuild.setNegativeButton("Exit",
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int id) {
-										GameActivity.this.finish();
-									}
-								});
-
-						loseBuild.create().show();
-
+						showNextWordPromptDialog("YEAHHHSSSS", "You got the word right!");
 					}
 				}
 
@@ -311,17 +225,11 @@ public class GameActivity extends Activity implements OnClickListener {
 							"Guess was wrong but still have a chance");
 					bodyParts[currPart].setVisibility(View.VISIBLE);
 					currPart++;
-					setWord(result);
-					wordTriedView.setText("Number of words you have tried: "
-							+ result2);
-					guessAllowedView
-							.setText("Remaining number allowed for guess: "
-									+ result3);
-					numberOfWordsTried = result2;
-					numberOfGuessAllowedForThisWord = result3;
+					setWordViews(word, wordsTried, guessAllowed);
+					
 					if (currPart == numParts) { // maximum guess reached
 						Log.i("Guess checking", "No more guess allowed");
-						if (result2.equals("80")) { // wordsTried is 80
+						if (wordsTried.equals("80")) { // wordsTried is 80
 							Log.i("Guess checking", "That was a 80th word");
 							disableBtns();
 							// show result
@@ -333,29 +241,8 @@ public class GameActivity extends Activity implements OnClickListener {
 									"No more guess for this word, have to get a new word");
 							disableBtns();
 							// Display Alert Dialog
-							AlertDialog.Builder loseBuild = new AlertDialog.Builder(
-									GameActivity.this);
-							loseBuild.setTitle("OOPS");
-							loseBuild
-									.setMessage("You ran out of guess allowed.");
-							loseBuild.setPositiveButton("Next Word",
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog, int id) {
-											GameActivity.this
-													.onClick(buttonSkip);
-										}
-									});
-
-							loseBuild.setNegativeButton("Exit",
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog, int id) {
-											GameActivity.this.finish();
-										}
-									});
-
-							loseBuild.create().show();
+							showNextWordPromptDialog("OOPS",
+									"You ran out of guess allowed.");
 
 						}
 					}
@@ -363,12 +250,6 @@ public class GameActivity extends Activity implements OnClickListener {
 				}
 
 			}
-
-		}
-
-		@Override
-		public void onTaskComplete(String result, String result2,
-				String result3, String result4) {
 
 		}
 
@@ -409,11 +290,6 @@ public class GameActivity extends Activity implements OnClickListener {
 		public void onTaskComplete(String result, String result2, String result3) {
 
 		}
-
-		@Override
-		public void onTaskComplete(String result, String result2,
-				String result3, String result4) {
-		}
 	}
 
 	private class AfterSubmitTestResults implements
@@ -423,45 +299,94 @@ public class GameActivity extends Activity implements OnClickListener {
 			Log.i("AfterSubmitTestResults", "So just send it to email");
 			// send the result to my email.
 			sendEmail("subin.c.park@gmail.com", returnValue);
-			/**
-			Intent email = new Intent(Intent.ACTION_SEND);
-			email.putExtra(Intent.EXTRA_EMAIL,
-					new String[] { "subin.c.park@gmail.com" });
-			email.putExtra(Intent.EXTRA_SUBJECT, "Result from the key "
-					+ mSecret);
-			email.putExtra(Intent.EXTRA_TEXT, returnValue);
-			email.setType("message/rfc822");
-			startActivity(Intent.createChooser(email,
-					"Choose an Email client :")); **/
 		}
 
 		@Override
 		public void onTaskComplete(String result, String result2, String result3) {
 
 		}
+	}
+	
+	
+	
+	
+	
+	
+	/////////////////////Methos/////////////////
 
-		@Override
-		public void onTaskComplete(String result, String result2,
-				String result3, String result4) {
+	private void setPlatform() {
+		// reset adapter
+		ltrAdapt = new LetterAdapter(this);
+		letters.setAdapter(ltrAdapt);
 
+		// start part at zero
+		currPart = 0;
+
+		// hide all parts
+		for (int p = 0; p < numParts; p++) {
+			bodyParts[p].setVisibility(View.INVISIBLE);
 		}
 	}
 	
+	public void setWordViews(String word, String wordsTried, String guessAllowed) {
+		currWord = word;				
+		setWord(word);
+		wordTriedView.setText("Number of words you have tried: "
+								+ wordsTried);
+		guessAllowedView.setText("Remaining number allowed for guess: "
+								+ guessAllowed);
+	}
+	
+	private void setWord(String wordToSet) {
+
+		textView = new TextView(this);
+
+		// set the current text
+		textView.setText(wordToSet);
+
+		// set layout
+		textView.setTextColor(0xFF6960EC);
+		textView.setTextSize(30);
+		textView.setBackgroundResource(R.drawable.letter_bg);
+
+		// remove any existing letters
+		textLayout.removeAllViews();
+		
+		textLayout.addView(textView);
+	}
 	
 	
 	public void sendEmail(String email, String content) {
 		// send the result to my email.
 		Intent sendEmail = new Intent(Intent.ACTION_SEND);
-		sendEmail.putExtra(Intent.EXTRA_EMAIL,
-				new String[] { email });
+		sendEmail.putExtra(Intent.EXTRA_EMAIL, new String[] { email });
 		sendEmail.putExtra(Intent.EXTRA_SUBJECT, "Result from Hangman Game");
 		sendEmail.putExtra(Intent.EXTRA_TEXT, content);
 		sendEmail.setType("message/rfc822");
 		startActivity(Intent.createChooser(sendEmail,
 				"Choose an Email client :"));
 	}
-	
-	
-	
+
+	public void showNextWordPromptDialog(String title, String message) {
+		AlertDialog.Builder loseBuild = new AlertDialog.Builder(
+				GameActivity.this);
+		loseBuild.setTitle(title);
+		loseBuild.setMessage(message);
+		loseBuild.setPositiveButton("Next Word",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						GameActivity.this.onClick(buttonSkip);
+					}
+				});
+
+		loseBuild.setNegativeButton("Exit",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						GameActivity.this.finish();
+					}
+				});
+
+		loseBuild.create().show();
+	}
 
 }

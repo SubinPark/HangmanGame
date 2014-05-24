@@ -72,7 +72,7 @@ public class GuessWord extends AsyncTask<String, Void, String> {
 
 			// convert inputstream to string
 			if (inputStream != null)
-				result = convertInputStreamToString(inputStream);
+				result = Helpers.convertInputStreamToString(inputStream);
 			else
 				result = "Error_convertingString";
 
@@ -94,29 +94,9 @@ public class GuessWord extends AsyncTask<String, Void, String> {
 		String word = findKey.findValueToKey(result, "word");
 		String wordsTried = findKey.findValueToKey(result, "numberOfWordsTried");
 		String guessAllowed = findKey.findValueToKey(result, "numberOfGuessAllowedForThisWord");
-		
-		
-		
-		
-		
-		
+			
 		// Starting callback method
 		if (callback != null)
 			callback.onTaskComplete(word, wordsTried, guessAllowed);
 	}
-
-	private static String convertInputStreamToString(InputStream inputStream)
-			throws IOException {
-		BufferedReader bufferedReader = new BufferedReader(
-				new InputStreamReader(inputStream));
-		String line = "";
-		String result = "";
-		while ((line = bufferedReader.readLine()) != null)
-			result += line;
-
-		inputStream.close();
-		return result;
-
-	}
-
 }

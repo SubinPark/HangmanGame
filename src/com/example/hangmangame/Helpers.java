@@ -1,16 +1,17 @@
 package com.example.hangmangame;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import android.util.Log;
 
 public class Helpers {
-	String key;
-	String value;
+	static String key;
+	static String value;
 
-	public Helpers() {
-
-	}
-
-	public String findValueToKey(String result, String KeyToFind) {
+	public static String findValueToKey(String result, String KeyToFind) {
 		if(result.contains("<!DOCTYPE html>")) {
 			Log.e("ERROR", "Helper didn't find the key");
 			return "NO_KEY_FOUND_ERROR";
@@ -57,5 +58,18 @@ public class Helpers {
 		Log.e("ERROR", "Helper didn't find the key");
 		return "NO_KEY_FOUND_ERROR";
 	}
+	
+	public static String convertInputStreamToString(InputStream inputStream)
+			throws IOException {
+		BufferedReader bufferedReader = new BufferedReader(
+				new InputStreamReader(inputStream));
+		String line = "";
+		String result = "";
+		while ((line = bufferedReader.readLine()) != null)
+			result += line;
+
+		inputStream.close();
+		return result;
+	} 
 
 }

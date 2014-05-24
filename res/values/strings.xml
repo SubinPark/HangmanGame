@@ -14,6 +14,6 @@
     <string name="error_on_getting_secret">Can\'t initialize a new game</string>
     <string name="error_on_getting_word">Can\'t get a word</string>
     <string name="welcome">Welcome to Hangman Game!</string>
-    <string name="skip">Got you a new word!</string>
+    <string name="skip">Getting you a new word!</string>
 
 </resources>

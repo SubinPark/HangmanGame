@@ -55,6 +55,8 @@ public class NextWord extends AsyncTask<String, Void, String> {
 		nameValuePairs
 				.add(new BasicNameValuePair("secret", BuildConfig.SECRET));
 
+		Log.i("NextWord", BuildConfig.SECRET);
+		
 		// Add the parameter to HttpPost
 		try {
 			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -72,7 +74,7 @@ public class NextWord extends AsyncTask<String, Void, String> {
 
 			// convert inputstream to string
 			if (inputStream != null)
-				result = convertInputStreamToString(inputStream);
+				result = Helpers.convertInputStreamToString(inputStream);
 			else
 				result = "Error_convertingString";
 
@@ -108,20 +110,6 @@ public class NextWord extends AsyncTask<String, Void, String> {
 			if (callback != null)
 				callback.onTaskComplete(message);
 		}
-	}
-
-	private static String convertInputStreamToString(InputStream inputStream)
-			throws IOException {
-		BufferedReader bufferedReader = new BufferedReader(
-				new InputStreamReader(inputStream));
-		String line = "";
-		String result = "";
-		while ((line = bufferedReader.readLine()) != null)
-			result += line;
-
-		inputStream.close();
-		return result;
-
 	}
 
 }

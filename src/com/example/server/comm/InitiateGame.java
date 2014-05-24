@@ -73,7 +73,7 @@ public class InitiateGame extends AsyncTask<String, Void, String> {
 
 			// convert inputstream to string
 			if (inputStream != null)
-				result = convertInputStreamToString(inputStream);
+				result = Helpers.convertInputStreamToString(inputStream);
 			else
 				result = "Error_convertingString";
 
@@ -98,20 +98,6 @@ public class InitiateGame extends AsyncTask<String, Void, String> {
 		// Starting callback method
 		if (callback != null)
 			callback.onTaskComplete(secret);
-	}
-
-	private static String convertInputStreamToString(InputStream inputStream)
-			throws IOException {
-		BufferedReader bufferedReader = new BufferedReader(
-				new InputStreamReader(inputStream));
-		String line = "";
-		String result = "";
-		while ((line = bufferedReader.readLine()) != null)
-			result += line;
-
-		inputStream.close();
-		return result;
-
 	}
 
 }
